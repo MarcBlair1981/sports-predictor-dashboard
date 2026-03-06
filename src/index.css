@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+@theme {
+  --color-sportsbook-dark: #0f172a;
+  --color-sportsbook-card: #1e293b;
+  --color-sportsbook-accent: #3b82f6; 
+  --color-sportsbook-light: #f8fafc;
+  --color-sportsbook-green: #10b981;
+  --color-sportsbook-red: #ef4444;
+}
+
+body {
+  background-color: var(--color-sportsbook-dark);
+  color: var(--color-sportsbook-light);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
