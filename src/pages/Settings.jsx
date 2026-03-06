@@ -27,12 +27,14 @@ export default function Settings() {
                 const mods = {};
                 // Fill defaults
                 TEAMS.forEach(t => {
-                    mods[t.id] = 1.0;
+                    mods[t.id] = { off: 0.0, hga: 3.0 };
                 });
 
                 if (data && !error) {
                     data.forEach(m => {
-                        mods[m.team_id] = m.multiplier;
+                        const offVal = m.off_adjustment !== undefined ? m.off_adjustment : ((m.multiplier && m.multiplier !== 1.0) ? m.multiplier : 0.0);
+                        const hgaVal = m.hga_adjustment !== undefined ? m.hga_adjustment : 3.0;
+                        mods[m.team_id] = { off: offVal, hga: hgaVal };
                     });
                 }
                 setModifiers(mods);
@@ -49,9 +51,11 @@ export default function Settings() {
         setSaving(true);
         setMessage(null);
         try {
-            const updates = Object.entries(modifiers).map(([team_id, multiplier]) => ({
+            const updates = Object.entries(modifiers).map(([team_id, mods]) => ({
                 team_id: parseInt(team_id),
-                multiplier: parseFloat(multiplier)
+                off_adjustment: parseFloat(mods.off),
+                hga_adjustment: parseFloat(mods.hga),
+                multiplier: parseFloat(mods.off) // Fallback for existing db constraints
             }));
 
             const { error } = await supabase.from('team_modifiers').upsert(updates, { onConflict: 'team_id' });
@@ -59,18 +63,24 @@ export default function Settings() {
             if (error) {
                 throw error;
             }
-            setMessage({ type: 'success', text: 'Power ratings successfully updated in database.' });
+            setMessage({ type: 'success', text: 'Adjustments successfully updated in database.' });
         } catch (err) {
             console.error(err);
-            setMessage({ type: 'error', text: 'Mock save: Ensure Supabase schema exists to persist data.' });
+            setMessage({ type: 'error', text: 'Error saving config. Did you add the columns to Supabase?' });
         } finally {
             setSaving(false);
             setTimeout(() => setMessage(null), 5000);
         }
     };
 
-    const updateVal = (id, val) => {
-        setModifiers(prev => ({ ...prev, [id]: parseFloat(val) || 1.0 }));
+    const updateVal = (id, field, val) => {
+        setModifiers(prev => ({
+            ...prev,
+            [id]: {
+                ...prev[id],
+                [field]: parseFloat(val) || 0.0
+            }
+        }));
     };
 
     if (loading) {
@@ -120,7 +130,8 @@ export default function Settings() {
                         <thead>
                             <tr className="bg-gray-900/50">
                                 <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-400 border-b border-gray-800">Team</th>
-                                <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-400 border-b border-gray-800 text-right w-48">Offensive Multiplier</th>
+                                <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-400 border-b border-gray-800 text-center w-48">Offensive Adj (+/-)</th>
+                                <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-400 border-b border-gray-800 text-center w-48">Home Court Adj</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-800/50">
@@ -132,13 +143,22 @@ export default function Settings() {
                                         </div>
                                         {team.name}
                                     </td>
-                                    <td className="p-4 text-right">
+                                    <td className="p-4 text-center">
                                         <input
                                             type="number"
-                                            step="0.01"
-                                            value={modifiers[team.id] || 1.0}
-                                            onChange={(e) => updateVal(team.id, e.target.value)}
-                                            className="bg-gray-900 border border-gray-700 text-white rounded-lg px-3 py-2 w-24 text-right focus:outline-none focus:border-sportsbook-accent focus:ring-1 focus:ring-sportsbook-accent font-mono transition-all"
+                                            step="0.5"
+                                            value={modifiers[team.id]?.off ?? 0.0}
+                                            onChange={(e) => updateVal(team.id, 'off', e.target.value)}
+                                            className="bg-gray-900 border border-gray-700 text-white rounded-lg px-3 py-2 w-24 text-center focus:outline-none focus:border-sportsbook-accent focus:ring-1 focus:ring-sportsbook-accent font-mono transition-all"
+                                        />
+                                    </td>
+                                    <td className="p-4 text-center">
+                                        <input
+                                            type="number"
+                                            step="0.5"
+                                            value={modifiers[team.id]?.hga ?? 3.0}
+                                            onChange={(e) => updateVal(team.id, 'hga', e.target.value)}
+                                            className="bg-gray-900 border border-gray-700 text-white rounded-lg px-3 py-2 w-24 text-center focus:outline-none focus:border-sportsbook-light focus:ring-1 focus:ring-sportsbook-light font-mono transition-all"
                                         />
                                     </td>
                                 </tr>

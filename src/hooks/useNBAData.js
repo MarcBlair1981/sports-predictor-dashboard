@@ -72,9 +72,12 @@ export function useNBAData(isHistory = false) {
                 }
 
                 const modifiersMap = {};
+                const hgaMap = {};
                 if (teamModifiers) {
                     teamModifiers.forEach(m => {
-                        modifiersMap[m.team_id] = m.multiplier;
+                        const offVal = m.off_adjustment !== undefined ? m.off_adjustment : ((m.multiplier && m.multiplier !== 1.0) ? m.multiplier : 0.0);
+                        modifiersMap[m.team_id] = offVal;
+                        hgaMap[m.team_id] = m.hga_adjustment !== undefined ? m.hga_adjustment : 3.0;
                     });
                 }
 
@@ -177,12 +180,12 @@ export function useNBAData(isHistory = false) {
                     const homeTeam = game.home;
                     const awayTeam = game.away;
 
-                    // Manual Overrides
-                    const homeMultiplier = modifiersMap[homeTeam.id] || 1.0;
-                    const awayMultiplier = modifiersMap[awayTeam.id] || 1.0;
+                    // Manual Overrides (Additive)
+                    const homeAdditive = modifiersMap[homeTeam.id] || 0.0;
+                    const awayAdditive = modifiersMap[awayTeam.id] || 0.0;
 
-                    const homeOffRatingRaw = homeTeam.off_rating * homeMultiplier;
-                    const awayOffRatingRaw = awayTeam.off_rating * awayMultiplier;
+                    const homeOffRatingRaw = homeTeam.off_rating + homeAdditive;
+                    const awayOffRatingRaw = awayTeam.off_rating + awayAdditive;
 
                     // Formula Application:
                     // P = LeagueAvg * (TeamOff/LeagueAvg) * (OppDef/LeagueAvg)
@@ -190,7 +193,8 @@ export function useNBAData(isHistory = false) {
                     let pAway = LEAGUE_AVG * (awayOffRatingRaw / LEAGUE_AVG) * (homeTeam.def_rating / LEAGUE_AVG);
 
                     // Home Court Advantage
-                    pHome += HOME_ADVANTAGE;
+                    const homeHGA = hgaMap[homeTeam.id] !== undefined ? hgaMap[homeTeam.id] : 3.0;
+                    pHome += homeHGA;
 
                     // Our Lines
                     const ourSpread = pAway - pHome; // Negative means home favorite
