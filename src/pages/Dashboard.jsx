@@ -2,11 +2,17 @@ import React from 'react';
 import { useNBAData } from '../hooks/useNBAData';
 import { AlertCircle, TrendingUp, TrendingDown, Clock, MoveRight } from 'lucide-react';
 
-function StatBadge({ label, value, colorClass = "text-white" }) {
+function StatBadge({ label, value, colorClass = "text-white", tooltip }) {
     return (
-        <div className="flex flex-col items-center bg-gray-800/50 rounded-lg p-2 flex-1">
+        <div className="flex flex-col items-center bg-gray-800/50 rounded-lg p-2 flex-1 relative group cursor-help transition-colors hover:bg-gray-800/80">
             <span className="text-xs text-gray-400 uppercase tracking-wider mb-1 font-semibold">{label}</span>
             <span className={`text-lg font-bold ${colorClass}`}>{value}</span>
+
+            {tooltip && (
+                <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-950 border border-gray-700 text-xs text-gray-300 px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-1 group-hover:-translate-y-1 whitespace-nowrap pointer-events-none z-50 shadow-2xl font-mono">
+                    {tooltip}
+                </div>
+            )}
         </div>
     );
 }
@@ -103,11 +109,13 @@ function GameCard({ game }) {
                                 label="Our Line"
                                 value={ourSpreadStr}
                                 colorClass="text-sportsbook-accent"
+                                tooltip={`${away.abbreviation} ${our_line.away_score.toFixed(1)} - ${home.abbreviation} ${our_line.home_score.toFixed(1)}`}
                             />
                             <StatBadge
                                 label="Our Total"
                                 value={`O/U ${our_line.total.toFixed(1)}`}
                                 colorClass="text-sportsbook-accent"
+                                tooltip={`${our_line.total.toFixed(2)} pts projected`}
                             />
                         </div>
 
