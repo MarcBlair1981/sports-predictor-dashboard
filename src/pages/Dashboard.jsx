@@ -78,8 +78,11 @@ function GameCard({ game }) {
                                     <div className="text-sm text-gray-500">Away</div>
                                 </div>
                             </div>
-                            <div className="text-3xl font-black text-white/90 font-mono tracking-tighter">
+                            <div className="text-3xl font-black text-white/90 font-mono tracking-tighter relative group cursor-help">
                                 {Math.round(our_line.away_score)}
+                                <div className="absolute -top-10 right-0 bg-gray-950 border border-gray-700 text-xs text-gray-300 px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-1 group-hover:-translate-y-1 whitespace-nowrap pointer-events-none z-50 shadow-2xl font-mono">
+                                    {our_line.away_score.toFixed(2)} raw pts
+                                </div>
                             </div>
                         </div>
 
@@ -93,8 +96,11 @@ function GameCard({ game }) {
                                     <div className="text-sm text-gray-500">Home</div>
                                 </div>
                             </div>
-                            <div className="text-3xl font-black text-white/90 font-mono tracking-tighter">
+                            <div className="text-3xl font-black text-white/90 font-mono tracking-tighter relative group cursor-help">
                                 {Math.round(our_line.home_score)}
+                                <div className="absolute -top-10 right-0 bg-gray-950 border border-gray-700 text-xs text-gray-300 px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-1 group-hover:-translate-y-1 whitespace-nowrap pointer-events-none z-50 shadow-2xl font-mono">
+                                    {our_line.home_score.toFixed(2)} raw pts
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -109,13 +115,11 @@ function GameCard({ game }) {
                                 label="Our Line"
                                 value={ourSpreadStr}
                                 colorClass="text-sportsbook-accent"
-                                tooltip={`${away.abbreviation} ${our_line.away_score.toFixed(1)} - ${home.abbreviation} ${our_line.home_score.toFixed(1)}`}
                             />
                             <StatBadge
                                 label="Our Total"
-                                value={`O/U ${our_line.total.toFixed(1)}`}
+                                value={`O/U ${(Math.round(our_line.total * 2) / 2).toFixed(1)}`}
                                 colorClass="text-sportsbook-accent"
-                                tooltip={`${our_line.total.toFixed(2)} pts projected`}
                             />
                         </div>
 
