@@ -14,14 +14,17 @@ function StatBadge({ label, value, colorClass = "text-white" }) {
 function GameCard({ game }) {
     const { home, away, our_line, vegas, edge, isValuePlay, status } = game;
 
-    const ourFavorite = our_line.spread < 0 ? home.abbreviation : away.abbreviation;
-    const ourSpreadStr = `${ourFavorite} ${our_line.spread > 0 ? '+' : ''}${parseFloat(our_line.spread).toFixed(1)}`;
+    // Format spreading logic to force negative (-) sign for the favorite
+    // and round to nearest half-point (0.5) like real Vegas odds.
+    const formatSpread = (spread, homeAbbr, awayAbbr) => {
+        if (spread === 0) return 'PK';
+        const favorite_abbr = spread < 0 ? homeAbbr : awayAbbr;
+        const roundedAbsolute = (Math.round(Math.abs(spread) * 2) / 2).toFixed(1);
+        return `${favorite_abbr} -${roundedAbsolute}`;
+    };
 
-    let vegasSpreadStr = 'N/A';
-    if (vegas) {
-        const vegasFav = vegas.spread < 0 ? home.abbreviation : away.abbreviation;
-        vegasSpreadStr = `${vegasFav} ${vegas.spread > 0 ? '+' : ''}${parseFloat(vegas.spread).toFixed(1)}`;
-    }
+    const ourSpreadStr = formatSpread(our_line.spread, home.abbreviation, away.abbreviation);
+    const vegasSpreadStr = vegas ? formatSpread(vegas.spread, home.abbreviation, away.abbreviation) : 'N/A';
 
     // Time Formatter
     let displayTime = status;

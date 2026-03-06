@@ -78,11 +78,14 @@ export default function HistoryPage() {
                             </thead>
                             <tbody className="divide-y divide-gray-800/50">
                                 {finishedGames.map(game => {
-                                    const vegasFav = game.vegas.spread < 0 ? game.home.abbreviation : game.away.abbreviation;
-                                    const vegasSpread = `${vegasFav} ${game.vegas.spread > 0 ? '+' : ''}${parseFloat(game.vegas.spread).toFixed(1)}`;
+                                    const formatSpread = (spread, homeAbbr, awayAbbr) => {
+                                        if (spread === 0) return 'PK';
+                                        const fav = spread < 0 ? homeAbbr : awayAbbr;
+                                        return `${fav} -${(Math.round(Math.abs(spread) * 2) / 2).toFixed(1)}`;
+                                    };
 
-                                    const ourFav = game.our_line.spread < 0 ? game.home.abbreviation : game.away.abbreviation;
-                                    const ourSpread = `${ourFav} ${game.our_line.spread > 0 ? '+' : ''}${parseFloat(game.our_line.spread).toFixed(1)}`;
+                                    const vegasSpread = game.vegas ? formatSpread(game.vegas.spread, game.home.abbreviation, game.away.abbreviation) : 'N/A';
+                                    const ourSpread = formatSpread(game.our_line.spread, game.home.abbreviation, game.away.abbreviation);
 
                                     const homeScore = game.actual_score.home;
                                     const awayScore = game.actual_score.away;
