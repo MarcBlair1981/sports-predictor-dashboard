@@ -23,13 +23,27 @@ function GameCard({ game }) {
         vegasSpreadStr = `${vegasFav} ${vegas.spread > 0 ? '+' : ''}${parseFloat(vegas.spread).toFixed(1)}`;
     }
 
+    // Time Formatter
+    let displayTime = status;
+    if (status && status.includes('Z')) {
+        try {
+            const d = new Date(status);
+            const dateStr = new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).format(d);
+            const estTime = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' }).format(d);
+            const ukTime = new Intl.DateTimeFormat('en-GB', { hour: 'numeric', minute: '2-digit', timeZone: 'Europe/London' }).format(d);
+            displayTime = `${dateStr} • ${estTime} ET / ${ukTime} UK`;
+        } catch (e) {
+            // fallback
+        }
+    }
+
     return (
         <div className="bg-sportsbook-card border border-gray-800 rounded-2xl overflow-hidden hover:border-gray-600 transition-all duration-300 shadow-xl group">
             {/* Header */}
             <div className="bg-gray-900/50 px-5 py-3 flex justify-between items-center border-b border-gray-800">
-                <div className="flex items-center space-x-2 text-sm text-gray-400">
-                    <Clock size={14} />
-                    <span>{status}</span>
+                <div className="flex items-center space-x-2 text-sm text-gray-400 font-medium">
+                    <Clock size={16} className="text-sportsbook-accent" />
+                    <span>{displayTime}</span>
                 </div>
                 {isValuePlay && (
                     <div className="bg-sportsbook-green/20 text-sportsbook-green text-xs px-3 py-1 rounded-full flex items-center space-x-1 font-bold animate-pulse">
