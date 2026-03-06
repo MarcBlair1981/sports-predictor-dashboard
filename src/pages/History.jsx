@@ -81,7 +81,8 @@ export default function HistoryPage() {
                                     const formatSpread = (spread, homeAbbr, awayAbbr) => {
                                         if (spread === 0) return 'PK';
                                         const fav = spread < 0 ? homeAbbr : awayAbbr;
-                                        return `${fav} -${(Math.round(Math.abs(spread) * 2) / 2).toFixed(1)}`;
+                                        const forcedHalf = Math.round(Math.abs(spread) - 0.5) + 0.5;
+                                        return `${fav} -${forcedHalf.toFixed(1)}`;
                                     };
 
                                     const vegasSpread = game.vegas ? formatSpread(game.vegas.spread, game.home.abbreviation, game.away.abbreviation) : 'N/A';

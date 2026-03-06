@@ -21,12 +21,12 @@ function GameCard({ game }) {
     const { home, away, our_line, vegas, edge, isValuePlay, status } = game;
 
     // Format spreading logic to force negative (-) sign for the favorite
-    // and round to nearest half-point (0.5) like real Vegas odds.
+    // and ONLY round to the nearest .5 (preventing .0 values)
     const formatSpread = (spread, homeAbbr, awayAbbr) => {
         if (spread === 0) return 'PK';
         const favorite_abbr = spread < 0 ? homeAbbr : awayAbbr;
-        const roundedAbsolute = (Math.round(Math.abs(spread) * 2) / 2).toFixed(1);
-        return `${favorite_abbr} -${roundedAbsolute}`;
+        const forcedHalf = Math.round(Math.abs(spread) - 0.5) + 0.5;
+        return `${favorite_abbr} -${forcedHalf.toFixed(1)}`;
     };
 
     const ourSpreadStr = formatSpread(our_line.spread, home.abbreviation, away.abbreviation);
@@ -118,7 +118,7 @@ function GameCard({ game }) {
                             />
                             <StatBadge
                                 label="Our Total"
-                                value={`O/U ${(Math.round(our_line.total * 2) / 2).toFixed(1)}`}
+                                value={`O/U ${(Math.round(our_line.total - 0.5) + 0.5).toFixed(1)}`}
                                 colorClass="text-sportsbook-accent"
                             />
                         </div>
