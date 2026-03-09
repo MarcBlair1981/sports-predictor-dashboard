@@ -90,12 +90,13 @@ export function useNBAData(isHistory = false) {
                     // Real API logic (wrapped in try-catch to fallback to mock)
                     try {
                         const todayStr = format(today, 'yyyy-MM-dd');
-                        const endDate = isHistory ? targetDate : format(addDays(today, 7), 'yyyy-MM-dd');
+                        const endDate = isHistory ? targetDate : format(addDays(today, 10), 'yyyy-MM-dd');
 
                         const bdlResponse = await axios.get(`https://api.balldontlie.io/v1/games`, {
                             params: {
                                 start_date: isHistory ? targetDate : todayStr,
-                                end_date: isHistory ? targetDate : endDate
+                                end_date: isHistory ? targetDate : endDate,
+                                per_page: 100
                             },
                             headers: { Authorization: BDL_KEY }
                         });
@@ -161,10 +162,10 @@ export function useNBAData(isHistory = false) {
                             };
                         });
 
-                        // We want to show games 7 days out, even if bookmakers haven't released odds yet!
+                        // We want to show games 10 days out, even if bookmakers haven't released odds yet!
                         games = processedRealGames;
 
-                        if (games.length === 0) throw new Error("No NBA games found for the next 7 days. Falling back to mock data to show UI.");
+                        if (games.length === 0) throw new Error("No NBA games found for the next 10 days. Falling back to mock data to show UI.");
 
                     } catch (apiError) {
                         console.warn("API restricted or failed, falling back to rich mock data.", apiError.message);
@@ -205,7 +206,7 @@ export function useNBAData(isHistory = false) {
 
                     // For history, calculate accuracy
                     let wasAccurate = null;
-                    if (isHistory && game.actual_score) {
+                    if (isHistory && game.actual_score && game.vegas) {
                         const actualSpread = game.actual_score.away - game.actual_score.home;
                         const vegasSign = Math.sign(game.vegas.spread);
                         const ourSign = Math.sign(ourSpread);

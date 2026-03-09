@@ -167,13 +167,13 @@ export default function Dashboard() {
     return (
         <div className="space-y-6">
             <header className="mb-8">
-                <h1 className="text-3xl md:text-4xl font-black mb-2 tracking-tight">Today's <span className="text-sportsbook-accent">Projections</span></h1>
-                <p className="text-gray-400">Algorithmic lines compared with real-time Vegas odds.</p>
+                <h1 className="text-3xl md:text-4xl font-black mb-2 tracking-tight">Upcoming <span className="text-sportsbook-accent">Projections</span></h1>
+                <p className="text-gray-400">Algorithmic lines compared with real-time Vegas odds for the next 10 days.</p>
             </header>
 
             {games.length === 0 ? (
                 <div className="bg-sportsbook-card p-8 rounded-xl text-center text-gray-500 border border-gray-800">
-                    No games scheduled for today.
+                    No games scheduled for the next 10 days.
                 </div>
             ) : (
                 <div className="grid gap-6">
