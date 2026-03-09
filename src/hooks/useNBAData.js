@@ -8,12 +8,12 @@ const HOME_ADVANTAGE = 3.0;
 
 // Mock data to ensure the UI ALWAYS works, even without API keys or if rate limited
 const MOCK_TEAMS = [
-    { id: 1, name: 'Celtics', full_name: 'Boston Celtics', abbreviation: 'BOS', off_rating: 122.5, def_rating: 110.1 },
-    { id: 2, name: 'Lakers', full_name: 'Los Angeles Lakers', abbreviation: 'LAL', off_rating: 114.2, def_rating: 115.8 },
-    { id: 3, name: 'Nuggets', full_name: 'Denver Nuggets', abbreviation: 'DEN', off_rating: 118.0, def_rating: 112.5 },
-    { id: 4, name: 'Heat', full_name: 'Miami Heat', abbreviation: 'MIA', off_rating: 112.0, def_rating: 111.0 },
-    { id: 5, name: 'Warriors', full_name: 'Golden State Warriors', abbreviation: 'GSW', off_rating: 116.5, def_rating: 114.0 },
-    { id: 6, name: 'Suns', full_name: 'Phoenix Suns', abbreviation: 'PHX', off_rating: 117.2, def_rating: 116.1 }
+    { id: 2, name: 'Celtics', full_name: 'Boston Celtics', abbreviation: 'BOS', off_rating: 122.5, def_rating: 110.1 },
+    { id: 14, name: 'Lakers', full_name: 'Los Angeles Lakers', abbreviation: 'LAL', off_rating: 114.2, def_rating: 115.8 },
+    { id: 8, name: 'Nuggets', full_name: 'Denver Nuggets', abbreviation: 'DEN', off_rating: 118.0, def_rating: 112.5 },
+    { id: 16, name: 'Heat', full_name: 'Miami Heat', abbreviation: 'MIA', off_rating: 112.0, def_rating: 111.0 },
+    { id: 10, name: 'Warriors', full_name: 'Golden State Warriors', abbreviation: 'GSW', off_rating: 116.5, def_rating: 114.0 },
+    { id: 24, name: 'Suns', full_name: 'Phoenix Suns', abbreviation: 'PHX', off_rating: 117.2, def_rating: 116.1 }
 ];
 
 const DEFAULT_RATINGS = {
@@ -72,11 +72,14 @@ export function useNBAData(isHistory = false) {
                 }
 
                 const modifiersMap = {};
+                const defModifiersMap = {};
                 const hgaMap = {};
                 if (teamModifiers) {
                     teamModifiers.forEach(m => {
                         const offVal = m.off_adjustment !== undefined ? m.off_adjustment : ((m.multiplier && m.multiplier !== 1.0) ? m.multiplier : 0.0);
+                        const defVal = m.def_adjustment !== undefined ? m.def_adjustment : 0.0;
                         modifiersMap[m.team_id] = offVal;
+                        defModifiersMap[m.team_id] = defVal;
                         hgaMap[m.team_id] = m.hga_adjustment !== undefined ? m.hga_adjustment : 3.0;
                     });
                 }
@@ -184,14 +187,18 @@ export function useNBAData(isHistory = false) {
                     // Manual Overrides (Additive)
                     const homeAdditive = modifiersMap[homeTeam.id] || 0.0;
                     const awayAdditive = modifiersMap[awayTeam.id] || 0.0;
+                    const homeDefAdditive = defModifiersMap[homeTeam.id] || 0.0;
+                    const awayDefAdditive = defModifiersMap[awayTeam.id] || 0.0;
 
                     const homeOffRatingRaw = homeTeam.off_rating + homeAdditive;
                     const awayOffRatingRaw = awayTeam.off_rating + awayAdditive;
+                    const homeDefRatingRaw = homeTeam.def_rating + homeDefAdditive;
+                    const awayDefRatingRaw = awayTeam.def_rating + awayDefAdditive;
 
                     // Formula Application:
                     // P = LeagueAvg * (TeamOff/LeagueAvg) * (OppDef/LeagueAvg)
-                    let pHome = LEAGUE_AVG * (homeOffRatingRaw / LEAGUE_AVG) * (awayTeam.def_rating / LEAGUE_AVG);
-                    let pAway = LEAGUE_AVG * (awayOffRatingRaw / LEAGUE_AVG) * (homeTeam.def_rating / LEAGUE_AVG);
+                    let pHome = LEAGUE_AVG * (homeOffRatingRaw / LEAGUE_AVG) * (awayDefRatingRaw / LEAGUE_AVG);
+                    let pAway = LEAGUE_AVG * (awayOffRatingRaw / LEAGUE_AVG) * (homeDefRatingRaw / LEAGUE_AVG);
 
                     // Home Court Advantage
                     const homeHGA = hgaMap[homeTeam.id] !== undefined ? hgaMap[homeTeam.id] : 3.0;

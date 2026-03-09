@@ -3,15 +3,36 @@ import { supabase } from '../lib/supabase';
 import { Save, CheckCircle, AlertCircle, Settings2 } from 'lucide-react';
 
 const TEAMS = [
-    { id: 1, name: 'Boston Celtics', abbr: 'BOS' },
-    { id: 2, name: 'Los Angeles Lakers', abbr: 'LAL' },
-    { id: 3, name: 'Denver Nuggets', abbr: 'DEN' },
-    { id: 4, name: 'Miami Heat', abbr: 'MIA' },
-    { id: 5, name: 'Golden State Warriors', abbr: 'GSW' },
-    { id: 6, name: 'Phoenix Suns', abbr: 'PHX' },
-    { id: 7, name: 'Philadelphia 76ers', abbr: 'PHI' },
-    { id: 8, name: 'Milwaukee Bucks', abbr: 'MIL' },
-    { id: 9, name: 'Dallas Mavericks', abbr: 'DAL' },
+    { id: 1, name: 'Atlanta Hawks', abbr: 'ATL' },
+    { id: 2, name: 'Boston Celtics', abbr: 'BOS' },
+    { id: 3, name: 'Brooklyn Nets', abbr: 'BKN' },
+    { id: 4, name: 'Charlotte Hornets', abbr: 'CHA' },
+    { id: 5, name: 'Chicago Bulls', abbr: 'CHI' },
+    { id: 6, name: 'Cleveland Cavaliers', abbr: 'CLE' },
+    { id: 7, name: 'Dallas Mavericks', abbr: 'DAL' },
+    { id: 8, name: 'Denver Nuggets', abbr: 'DEN' },
+    { id: 9, name: 'Detroit Pistons', abbr: 'DET' },
+    { id: 10, name: 'Golden State Warriors', abbr: 'GSW' },
+    { id: 11, name: 'Houston Rockets', abbr: 'HOU' },
+    { id: 12, name: 'Indiana Pacers', abbr: 'IND' },
+    { id: 13, name: 'LA Clippers', abbr: 'LAC' },
+    { id: 14, name: 'Los Angeles Lakers', abbr: 'LAL' },
+    { id: 15, name: 'Memphis Grizzlies', abbr: 'MEM' },
+    { id: 16, name: 'Miami Heat', abbr: 'MIA' },
+    { id: 17, name: 'Milwaukee Bucks', abbr: 'MIL' },
+    { id: 18, name: 'Minnesota Timberwolves', abbr: 'MIN' },
+    { id: 19, name: 'New Orleans Pelicans', abbr: 'NOP' },
+    { id: 20, name: 'New York Knicks', abbr: 'NYK' },
+    { id: 21, name: 'Oklahoma City Thunder', abbr: 'OKC' },
+    { id: 22, name: 'Orlando Magic', abbr: 'ORL' },
+    { id: 23, name: 'Philadelphia 76ers', abbr: 'PHI' },
+    { id: 24, name: 'Phoenix Suns', abbr: 'PHX' },
+    { id: 25, name: 'Portland Trail Blazers', abbr: 'POR' },
+    { id: 26, name: 'Sacramento Kings', abbr: 'SAC' },
+    { id: 27, name: 'San Antonio Spurs', abbr: 'SAS' },
+    { id: 28, name: 'Toronto Raptors', abbr: 'TOR' },
+    { id: 29, name: 'Utah Jazz', abbr: 'UTA' },
+    { id: 30, name: 'Washington Wizards', abbr: 'WAS' }
 ];
 
 export default function Settings() {
@@ -27,14 +48,15 @@ export default function Settings() {
                 const mods = {};
                 // Fill defaults
                 TEAMS.forEach(t => {
-                    mods[t.id] = { off: 0.0, hga: 3.0 };
+                    mods[t.id] = { off: 0.0, def: 0.0, hga: 3.0 };
                 });
 
                 if (data && !error) {
                     data.forEach(m => {
                         const offVal = m.off_adjustment !== undefined ? m.off_adjustment : ((m.multiplier && m.multiplier !== 1.0) ? m.multiplier : 0.0);
+                        const defVal = m.def_adjustment !== undefined ? m.def_adjustment : 0.0;
                         const hgaVal = m.hga_adjustment !== undefined ? m.hga_adjustment : 3.0;
-                        mods[m.team_id] = { off: offVal, hga: hgaVal };
+                        mods[m.team_id] = { off: offVal, def: defVal, hga: hgaVal };
                     });
                 }
                 setModifiers(mods);
@@ -54,6 +76,7 @@ export default function Settings() {
             const updates = Object.entries(modifiers).map(([team_id, mods]) => ({
                 team_id: parseInt(team_id),
                 off_adjustment: parseFloat(mods.off),
+                def_adjustment: parseFloat(mods.def),
                 hga_adjustment: parseFloat(mods.hga),
                 multiplier: parseFloat(mods.off) // Fallback for existing db constraints
             }));
@@ -100,7 +123,7 @@ export default function Settings() {
                         <Settings2 className="text-gray-400" />
                         <span>Algorithm <span className="text-sportsbook-accent">Overrides</span></span>
                     </h1>
-                    <p className="text-gray-400">Manually adjust team offensive power ratings based on injury, momentum, or insider info.</p>
+                    <p className="text-gray-400">Manually adjust team offensive and defensive power ratings based on injury, momentum, or insider info.</p>
                 </div>
 
                 <button
@@ -130,8 +153,9 @@ export default function Settings() {
                         <thead>
                             <tr className="bg-gray-900/50">
                                 <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-400 border-b border-gray-800">Team</th>
-                                <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-400 border-b border-gray-800 text-center w-48">Offensive Adj (+/-)</th>
-                                <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-400 border-b border-gray-800 text-center w-48">Home Court Adj</th>
+                                <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-400 border-b border-gray-800 text-center w-32">Offensive Adj</th>
+                                <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-400 border-b border-gray-800 text-center w-32">Defensive Adj</th>
+                                <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-400 border-b border-gray-800 text-center w-32">Home Court Adj</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-800/50">
@@ -150,6 +174,15 @@ export default function Settings() {
                                             value={modifiers[team.id]?.off ?? 0.0}
                                             onChange={(e) => updateVal(team.id, 'off', e.target.value)}
                                             className="bg-gray-900 border border-gray-700 text-white rounded-lg px-3 py-2 w-24 text-center focus:outline-none focus:border-sportsbook-accent focus:ring-1 focus:ring-sportsbook-accent font-mono transition-all"
+                                        />
+                                    </td>
+                                    <td className="p-4 text-center">
+                                        <input
+                                            type="number"
+                                            step="0.5"
+                                            value={modifiers[team.id]?.def ?? 0.0}
+                                            onChange={(e) => updateVal(team.id, 'def', e.target.value)}
+                                            className="bg-gray-900 border border-gray-700 text-white rounded-lg px-3 py-2 w-24 text-center focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 font-mono transition-all"
                                         />
                                     </td>
                                     <td className="p-4 text-center">
