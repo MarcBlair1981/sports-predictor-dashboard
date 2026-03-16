@@ -18,19 +18,26 @@ function StatBadge({ label, value, colorClass = "text-white", tooltip }) {
 }
 
 function GameCard({ game }) {
-    const { home, away, our_line, vegas, edge, isValuePlay, status } = game;
+    const { home, away, static_line, model_1_line, vegas, edge, isValuePlay, status } = game;
 
-    // Format spreading logic to force negative (-) sign for the favorite
-    // and ONLY round to the nearest .5 (preventing .0 values)
-    const formatSpread = (spread, homeAbbr, awayAbbr) => {
+    // Format spreading logic
+    // For Vegas lines, we still want to read the raw number provided (e.g., -6.5).
+    // For our models, we want to see the pure decimal to 1 decimal place (e.g., -16.7).
+    const formatSpread = (spread, homeAbbr, awayAbbr, forceHalf = false) => {
         if (spread === 0) return 'PK';
         const favorite_abbr = spread < 0 ? homeAbbr : awayAbbr;
-        const forcedHalf = Math.round(Math.abs(spread) - 0.5) + 0.5;
-        return `${favorite_abbr} -${forcedHalf.toFixed(1)}`;
+        
+        if (forceHalf) {
+            const forcedHalf = Math.round(Math.abs(spread) - 0.5) + 0.5;
+            return `${favorite_abbr} -${forcedHalf.toFixed(1)}`;
+        } else {
+             return `${favorite_abbr} -${Math.abs(spread).toFixed(1)}`;
+        }
     };
 
-    const ourSpreadStr = formatSpread(our_line.spread, home.abbreviation, away.abbreviation);
-    const vegasSpreadStr = vegas ? formatSpread(vegas.spread, home.abbreviation, away.abbreviation) : 'N/A';
+    const staticSpreadStr = formatSpread(static_line.spread, home.abbreviation, away.abbreviation);
+    const model1SpreadStr = formatSpread(model_1_line.spread, home.abbreviation, away.abbreviation);
+    const vegasSpreadStr = vegas ? formatSpread(vegas.spread, home.abbreviation, away.abbreviation, true) : 'N/A';
 
     // Time Formatter
     let displayTime = status;
@@ -79,9 +86,9 @@ function GameCard({ game }) {
                                 </div>
                             </div>
                             <div className="text-3xl font-black text-white/90 font-mono tracking-tighter relative group cursor-help">
-                                {Math.round(our_line.away_score)}
+                                {Math.round(model_1_line.away_score)}
                                 <div className="absolute -top-10 right-0 bg-gray-950 border border-gray-700 text-xs text-gray-300 px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-1 group-hover:-translate-y-1 whitespace-nowrap pointer-events-none z-50 shadow-2xl font-mono">
-                                    {our_line.away_score.toFixed(2)} raw pts
+                                    {model_1_line.away_score.toFixed(2)} raw pts
                                 </div>
                             </div>
                         </div>
@@ -97,9 +104,9 @@ function GameCard({ game }) {
                                 </div>
                             </div>
                             <div className="text-3xl font-black text-white/90 font-mono tracking-tighter relative group cursor-help">
-                                {Math.round(our_line.home_score)}
+                                {Math.round(model_1_line.home_score)}
                                 <div className="absolute -top-10 right-0 bg-gray-950 border border-gray-700 text-xs text-gray-300 px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-1 group-hover:-translate-y-1 whitespace-nowrap pointer-events-none z-50 shadow-2xl font-mono">
-                                    {our_line.home_score.toFixed(2)} raw pts
+                                    {model_1_line.home_score.toFixed(2)} raw pts
                                 </div>
                             </div>
                         </div>
@@ -109,31 +116,55 @@ function GameCard({ game }) {
                     <div className="hidden md:block w-px h-24 bg-gray-800"></div>
 
                     {/* Lines Comparison */}
-                    <div className="flex-1 flex flex-col justify-center space-y-4">
-                        <div className="flex space-x-3">
-                            <StatBadge
-                                label="Our Line"
-                                value={ourSpreadStr}
-                                colorClass="text-sportsbook-accent"
-                            />
-                            <StatBadge
-                                label="Our Total"
-                                value={`O/U ${(Math.round(our_line.total - 0.5) + 0.5).toFixed(1)}`}
-                                colorClass="text-sportsbook-accent"
-                            />
-                        </div>
+                    <div className="flex-1 min-w-[320px]">
+                        <div className="grid grid-cols-3 gap-3">
+                            
+                            {/* Column 1: Vegas (The Target) */}
+                            <div className="flex flex-col space-y-2">
+                                <div className="text-[10px] text-gray-500 uppercase tracking-widest font-bold text-center border-b border-gray-800 pb-1 mb-1">Vegas</div>
+                                <StatBadge
+                                    label="Spread"
+                                    value={vegasSpreadStr}
+                                    colorClass="text-gray-300"
+                                />
+                                <StatBadge
+                                    label="Total"
+                                    value={vegas ? `O/U ${vegas.total}` : 'N/A'}
+                                    colorClass="text-gray-300 bg-gray-900/40"
+                                />
+                            </div>
 
-                        <div className="flex space-x-3">
-                            <StatBadge
-                                label="Vegas Line"
-                                value={vegasSpreadStr}
-                                colorClass="text-gray-300"
-                            />
-                            <StatBadge
-                                label="Vegas Total"
-                                value={vegas ? `O/U ${vegas.total}` : 'N/A'}
-                                colorClass="text-gray-300"
-                            />
+                            {/* Column 2: Static Baseline */}
+                            <div className="flex flex-col space-y-2">
+                                <div className="text-[10px] text-gray-500 uppercase tracking-widest font-bold text-center border-b border-gray-800 pb-1 mb-1">Static</div>
+                                <StatBadge
+                                    label="Spread"
+                                    value={staticSpreadStr}
+                                    colorClass="text-gray-400"
+                                />
+                                <StatBadge
+                                    label="Total"
+                                    value={`O/U ${static_line.total.toFixed(1)}`}
+                                    colorClass="text-gray-400 bg-gray-900/40"
+                                />
+                            </div>
+
+                            {/* Column 3: Model 1 (EMA) */}
+                            <div className="flex flex-col space-y-2 bg-blue-950/10 rounded-xl p-1 -m-1 border border-blue-900/20">
+                                <div className="text-[10px] text-sportsbook-light uppercase tracking-widest font-bold text-center border-b border-blue-900/30 pb-1 mb-1">Model 1</div>
+                                <StatBadge
+                                    label="Spread"
+                                    value={model1SpreadStr}
+                                    tooltip={`Based on past ${model_1_line.games_sampled || 25} games EMA`}
+                                    colorClass="text-sportsbook-light drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]"
+                                />
+                                <StatBadge
+                                    label="Total"
+                                    value={`O/U ${model_1_line.total.toFixed(1)}`}
+                                    colorClass="text-sportsbook-accent bg-blue-950/20"
+                                />
+                            </div>
+
                         </div>
                     </div>
 

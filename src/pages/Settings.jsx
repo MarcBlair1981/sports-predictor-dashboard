@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Save, CheckCircle, AlertCircle, Settings2 } from 'lucide-react';
+import { Save, CheckCircle, AlertCircle, Settings2, Info } from 'lucide-react';
+import { DEFAULT_RATINGS } from '../hooks/useNBAData';
 
 const TEAMS = [
     { id: 1, name: 'Atlanta Hawks', abbr: 'ATL' },
@@ -124,6 +125,38 @@ export default function Settings() {
                         <span>Algorithm <span className="text-sportsbook-accent">Overrides</span></span>
                     </h1>
                     <p className="text-gray-400">Manually adjust team offensive and defensive power ratings based on injury, momentum, or insider info.</p>
+                    
+                    <div className="mt-6 bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 md:p-6 text-sm grid gap-4 grid-cols-1 md:grid-xl lg:grid-cols-2">
+                        <div>
+                            <h3 className="text-blue-400 font-bold mb-2 flex items-center gap-2">
+                                <Info size={16} /> How The Math Works
+                            </h3>
+                            <p className="text-blue-100/70 leading-relaxed mb-3">
+                                The system predicts a team's score using the formula: <br/>
+                                <strong className="text-white bg-gray-900/50 px-2 py-1 rounded inline-block mt-2 font-mono text-xs">Score = Base * (Team Offense / Avg) * (Opp Defense / Avg)</strong>
+                            </p>
+                            <p className="text-blue-100/70 leading-relaxed">
+                                Your adjustments are <strong className="text-white">ADDITIVE</strong>. An input of <code className="text-blue-300 bg-blue-900/30 px-1 rounded">+2.0</code> adds directly to the base rating.
+                            </p>
+                        </div>
+                        <div className="space-y-3 bg-gray-900/30 p-3 rounded-lg border border-gray-800">
+                            <h4 className="font-semibold text-gray-300">Rules of Thumb</h4>
+                            <ul className="space-y-2 text-gray-400 text-xs sm:text-sm">
+                                <li className="flex items-start gap-2">
+                                    <span className="text-sportsbook-green mt-0.5">⬆️</span>
+                                    <span><strong>Offense:</strong> <span className="text-white">+ Positive</span> = Scores More (Better). <span className="text-white">- Negative</span> = Scores Less.</span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                    <span className="text-red-400 mt-0.5">⬇️</span>
+                                    <span><strong>Defense:</strong> <span className="text-white">+ Positive</span> = Allows More pts (Worse). <span className="text-white">- Negative</span> = Allows Less pts (Better).</span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                    <span className="text-sportsbook-accent mt-0.5">🏠</span>
+                                    <span><strong>Home Court:</strong> <span className="text-white">+ Positive</span> = Stronger Home Advantage.</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
 
                 <button
@@ -153,7 +186,9 @@ export default function Settings() {
                         <thead>
                             <tr className="bg-gray-900/50">
                                 <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-400 border-b border-gray-800">Team</th>
+                                <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-400 border-b border-gray-800 text-center w-24">Base ORTG</th>
                                 <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-400 border-b border-gray-800 text-center w-32">Offensive Adj</th>
+                                <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-400 border-b border-gray-800 text-center w-24">Base DRTG</th>
                                 <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-400 border-b border-gray-800 text-center w-32">Defensive Adj</th>
                                 <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-400 border-b border-gray-800 text-center w-32">Home Court Adj</th>
                             </tr>
@@ -167,6 +202,9 @@ export default function Settings() {
                                         </div>
                                         {team.name}
                                     </td>
+                                    <td className="p-4 text-center text-gray-500 font-mono text-sm">
+                                        {DEFAULT_RATINGS[team.name]?.off_rating?.toFixed(1) || '115.5'}
+                                    </td>
                                     <td className="p-4 text-center">
                                         <input
                                             type="number"
@@ -175,6 +213,9 @@ export default function Settings() {
                                             onChange={(e) => updateVal(team.id, 'off', e.target.value)}
                                             className="bg-gray-900 border border-gray-700 text-white rounded-lg px-3 py-2 w-24 text-center focus:outline-none focus:border-sportsbook-accent focus:ring-1 focus:ring-sportsbook-accent font-mono transition-all"
                                         />
+                                    </td>
+                                    <td className="p-4 text-center text-gray-500 font-mono text-sm">
+                                        {DEFAULT_RATINGS[team.name]?.def_rating?.toFixed(1) || '115.5'}
                                     </td>
                                     <td className="p-4 text-center">
                                         <input
