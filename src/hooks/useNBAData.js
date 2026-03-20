@@ -135,13 +135,18 @@ export function useNBAData(isHistory = false) {
                                         team_ids: [tId],
                                         start_date: seasonStartDate,
                                         end_date: format(addDays(today, -1), 'yyyy-MM-dd'),
-                                        per_page: 25 
+                                        per_page: 100 // Get up to 100 to find the most recent 25
                                     },
                                     headers: { Authorization: BDL_KEY }
                                 });
                                 
                                 const teamGames = teamGamesRes.data.data.filter(g => g.status === 'Final');
-                                teamGames.forEach(g => {
+                                console.log(`Team ${tId} fetched ${teamGames.length} finished games.`);
+                                
+                                // Take only the most recent 25
+                                const last25 = teamGames.sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 25);
+                                
+                                last25.forEach(g => {
                                     if (!gamesSeen.has(g.id)) {
                                         allPastGames.push(g);
                                         gamesSeen.add(g.id);
@@ -153,6 +158,8 @@ export function useNBAData(isHistory = false) {
                                 console.warn(`Failed to fetch historical games for team ${tId}`, err.message);
                             }
                         }
+                        
+                        console.log(`Total unique historical games gathered: ${allPastGames.length}`);
                         
                         // Sort by date ascending to process EMA in order
                         allPastGames.sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -175,7 +182,7 @@ export function useNBAData(isHistory = false) {
                             const hName = game.home_team.full_name;
                             const aName = game.visitor_team.full_name;
                             
-                            if (teamEMAStats[hName] && teamEMAStats[aName]) {
+                             if (teamEMAStats[hName] && teamEMAStats[aName]) {
                                 // "Warm Start" Logic: 
                                 // If games_played < 10, use a higher alpha (0.2) to help 'anchor' catch up faster to 2026 data
                                 const warmAlpha = teamEMAStats[hName].games_played < 10 ? 0.2 : EMA_ALPHA;
@@ -190,6 +197,9 @@ export function useNBAData(isHistory = false) {
                                 teamEMAStats[aName].off_rating = (game.visitor_team_score * warmAwayAlpha) + (teamEMAStats[aName].off_rating * (1 - warmAwayAlpha));
                                 teamEMAStats[aName].def_rating = (game.home_team_score * warmAwayAlpha) + (teamEMAStats[aName].def_rating * (1 - warmAwayAlpha));
                                 teamEMAStats[aName].games_played++;
+                            } else {
+                                if (!teamEMAStats[hName]) console.warn(`No match for team: "${hName}"`);
+                                if (!teamEMAStats[aName]) console.warn(`No match for team: "${aName}"`);
                             }
                         });
 
