@@ -117,25 +117,50 @@ export function useNBAData(isHistory = false) {
                         const rawGames = bdlResponse.data.data;
                         const oddsEvents = oddsResponse.data;
 
-                        // Fetch historical games for EMA calculation
-                        const pastGamesResponse = await axios.get(`https://api.balldontlie.io/v1/games`, {
-                            params: {
-                                start_date: seasonStartDate,
-                                end_date: format(addDays(today, -1), 'yyyy-MM-dd'),
-                                per_page: 100
-                            },
-                            headers: { Authorization: BDL_KEY }
-                        });
+                        // 2a. Fetch historical games team-by-team to get exactly 25 games for everyone
+                        // This is more precise than a bulk fetch but requires throttling to stay under the 30/min rate limit.
+                        const EVERY_TEAM_ID = Array.from({length: 30}, (_, i) => i + 1);
+                        let allPastGames = [];
+                        const gamesSeen = new Set();
                         
-                        let allPastGames = pastGamesResponse.data.data.filter(g => g.status === 'Final');
+                        const delay = (ms) => new Promise(res => setTimeout(res, ms));
+
+                        // Fetch exactly 25 games for ALL 30 teams.
+                        // Throttled to 1 req every 1.5s to fit in ~45s (under the 60s limit).
+                        for (let i = 0; i < EVERY_TEAM_ID.length; i++) {
+                            const tId = EVERY_TEAM_ID[i];
+                            try {
+                                const teamGamesRes = await axios.get(`https://api.balldontlie.io/v1/games`, {
+                                    params: {
+                                        team_ids: [tId],
+                                        start_date: seasonStartDate,
+                                        end_date: format(addDays(today, -1), 'yyyy-MM-dd'),
+                                        per_page: 25 
+                                    },
+                                    headers: { Authorization: BDL_KEY }
+                                });
+                                
+                                const teamGames = teamGamesRes.data.data.filter(g => g.status === 'Final');
+                                teamGames.forEach(g => {
+                                    if (!gamesSeen.has(g.id)) {
+                                        allPastGames.push(g);
+                                        gamesSeen.add(g.id);
+                                    }
+                                });
+                                
+                                if (i < EVERY_TEAM_ID.length - 1) await delay(1500); 
+                            } catch (err) {
+                                console.warn(`Failed to fetch historical games for team ${tId}`, err.message);
+                            }
+                        }
                         
-                        // Handle pagination if we need more games (simplified for brevity, sorting by date ascending)
+                        // Sort by date ascending to process EMA in order
                         allPastGames.sort((a, b) => new Date(a.date) - new Date(b.date));
 
                         // Calculate EMA Team Stats
                         const teamEMAStats = {};
                         
-                        // Initialize with default ratings before applying EMA
+                        // Initialize with default ratings
                         Object.keys(DEFAULT_RATINGS).forEach(teamName => {
                              teamEMAStats[teamName] = {
                                  off_rating: DEFAULT_RATINGS[teamName].off_rating,
@@ -151,14 +176,19 @@ export function useNBAData(isHistory = false) {
                             const aName = game.visitor_team.full_name;
                             
                             if (teamEMAStats[hName] && teamEMAStats[aName]) {
-                                // Home team scored home_team_score, allowed visitor_team_score
-                                teamEMAStats[hName].off_rating = (game.home_team_score * EMA_ALPHA) + (teamEMAStats[hName].off_rating * (1 - EMA_ALPHA));
-                                teamEMAStats[hName].def_rating = (game.visitor_team_score * EMA_ALPHA) + (teamEMAStats[hName].def_rating * (1 - EMA_ALPHA));
+                                // "Warm Start" Logic: 
+                                // If games_played < 10, use a higher alpha (0.2) to help 'anchor' catch up faster to 2026 data
+                                const warmAlpha = teamEMAStats[hName].games_played < 10 ? 0.2 : EMA_ALPHA;
+                                const warmAwayAlpha = teamEMAStats[aName].games_played < 10 ? 0.2 : EMA_ALPHA;
+
+                                // Home team EMA update
+                                teamEMAStats[hName].off_rating = (game.home_team_score * warmAlpha) + (teamEMAStats[hName].off_rating * (1 - warmAlpha));
+                                teamEMAStats[hName].def_rating = (game.visitor_team_score * warmAlpha) + (teamEMAStats[hName].def_rating * (1 - warmAlpha));
                                 teamEMAStats[hName].games_played++;
                                 
-                                // Away team scored visitor_team_score, allowed home_team_score
-                                teamEMAStats[aName].off_rating = (game.visitor_team_score * EMA_ALPHA) + (teamEMAStats[aName].off_rating * (1 - EMA_ALPHA));
-                                teamEMAStats[aName].def_rating = (game.home_team_score * EMA_ALPHA) + (teamEMAStats[aName].def_rating * (1 - EMA_ALPHA));
+                                // Away team EMA update
+                                teamEMAStats[aName].off_rating = (game.visitor_team_score * warmAwayAlpha) + (teamEMAStats[aName].off_rating * (1 - warmAwayAlpha));
+                                teamEMAStats[aName].def_rating = (game.home_team_score * warmAwayAlpha) + (teamEMAStats[aName].def_rating * (1 - warmAwayAlpha));
                                 teamEMAStats[aName].games_played++;
                             }
                         });
