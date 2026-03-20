@@ -118,48 +118,64 @@ export function useNBAData(isHistory = false) {
                         const oddsEvents = oddsResponse.data;
 
                         // 2a. Fetch historical games team-by-team to get exactly 25 games for everyone
-                        // This is more precise than a bulk fetch but requires throttling to stay under the 30/min rate limit.
-                        const EVERY_TEAM_ID = Array.from({length: 30}, (_, i) => i + 1);
+                        // To prevent 429 Rate Limits, we cache this data in localStorage for the day.
+                        const CACHE_KEY = 'nba_ema_historical_games_v2';
+                        const CACHE_DATE_KEY = 'nba_ema_cache_date';
+                        const cachedData = localStorage.getItem(CACHE_KEY);
+                        const cachedDate = localStorage.getItem(CACHE_DATE_KEY);
+
                         let allPastGames = [];
                         const gamesSeen = new Set();
-                        
-                        const delay = (ms) => new Promise(res => setTimeout(res, ms));
+                        const EVERY_TEAM_ID = Array.from({length: 30}, (_, i) => i + 1);
 
-                        // Fetch exactly 25 games for ALL 30 teams.
-                        // Throttled to 1 req every 1.5s to fit in ~45s (under the 60s limit).
-                        for (let i = 0; i < EVERY_TEAM_ID.length; i++) {
-                            const tId = EVERY_TEAM_ID[i];
+                        if (cachedData && cachedDate === todayStr) {
+                            console.log("Loading EMA historical data from local cache...");
+                            allPastGames = JSON.parse(cachedData);
+                        } else {
+                            console.log("Cache expired or missing. Performining throttled deep-fetch for 30 teams...");
+                            const delay = (ms) => new Promise(res => setTimeout(res, ms));
+
+                            for (let i = 0; i < EVERY_TEAM_ID.length; i++) {
+                                const tId = EVERY_TEAM_ID[i];
+                                try {
+                                    const teamGamesRes = await axios.get(`https://api.balldontlie.io/v1/games`, {
+                                        params: {
+                                            team_ids: [tId],
+                                            start_date: seasonStartDate,
+                                            end_date: format(addDays(today, -1), 'yyyy-MM-dd'),
+                                            per_page: 100 
+                                        },
+                                        headers: { Authorization: BDL_KEY }
+                                    });
+                                    
+                                    const teamGames = teamGamesRes.data.data.filter(g => g.status === 'Final');
+                                    // Take only the most recent 25
+                                    const last25 = teamGames.sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 25);
+                                    
+                                    last25.forEach(g => {
+                                        if (!gamesSeen.has(g.id)) {
+                                            allPastGames.push(g);
+                                            gamesSeen.add(g.id);
+                                        }
+                                    });
+                                    
+                                    // Slower delay (2s) to be extremely safe with the 30/min limit
+                                    if (i < EVERY_TEAM_ID.length - 1) await delay(2000); 
+                                } catch (err) {
+                                    console.warn(`Failed to fetch historical games for team ${tId}`, err.message);
+                                }
+                            }
+                            
+                            // Save to cache
                             try {
-                                const teamGamesRes = await axios.get(`https://api.balldontlie.io/v1/games`, {
-                                    params: {
-                                        team_ids: [tId],
-                                        start_date: seasonStartDate,
-                                        end_date: format(addDays(today, -1), 'yyyy-MM-dd'),
-                                        per_page: 100 // Get up to 100 to find the most recent 25
-                                    },
-                                    headers: { Authorization: BDL_KEY }
-                                });
-                                
-                                const teamGames = teamGamesRes.data.data.filter(g => g.status === 'Final');
-                                console.log(`Team ${tId} fetched ${teamGames.length} finished games.`);
-                                
-                                // Take only the most recent 25
-                                const last25 = teamGames.sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 25);
-                                
-                                last25.forEach(g => {
-                                    if (!gamesSeen.has(g.id)) {
-                                        allPastGames.push(g);
-                                        gamesSeen.add(g.id);
-                                    }
-                                });
-                                
-                                if (i < EVERY_TEAM_ID.length - 1) await delay(1500); 
-                            } catch (err) {
-                                console.warn(`Failed to fetch historical games for team ${tId}`, err.message);
+                                localStorage.setItem(CACHE_KEY, JSON.stringify(allPastGames));
+                                localStorage.setItem(CACHE_DATE_KEY, todayStr);
+                            } catch (e) {
+                                console.warn("Failed to write to localStorage (possibly quota exceeded)", e);
                             }
                         }
                         
-                        console.log(`Total unique historical games gathered: ${allPastGames.length}`);
+                        console.log(`Processing ${allPastGames.length} games for EMA model...`);
                         
                         // Sort by date ascending to process EMA in order
                         allPastGames.sort((a, b) => new Date(a.date) - new Date(b.date));
