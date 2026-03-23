@@ -134,26 +134,21 @@ export function useNBAData(isHistory = false) {
                             console.warn("Odds API failed (possibly rate limited or expired). Will show games without Vegas odds.", oddsErr.message);
                         }
 
-                        // Fetch Market Odds CSV natively from public folder
+                        // Fetch Market Odds natively from Supabase Database!
                         const marketOddsMap = {};
                         try {
-                            const csvRes = await axios.get(`/market_odds.csv?t=${Date.now()}`);
-                            const lines = csvRes.data.split('\n');
-                            for (let i = 1; i < lines.length; i++) {
-                                const row = lines[i].trim();
-                                if (!row) continue;
-                                const cols = row.split(',');
-                                if (cols.length >= 8 && cols[6] && cols[7]) {
-                                    const id = parseInt(cols[0], 10);
-                                    const spread = parseFloat(cols[6]);
-                                    const total = parseFloat(cols[7]);
-                                    if (!isNaN(id) && !isNaN(spread) && !isNaN(total)) {
-                                        marketOddsMap[id] = { spread, total };
+                            const { data: dbOdds, error: dbErr } = await supabase.from('historical_odds').select('*');
+                            if (dbErr) throw dbErr;
+                            
+                            if (dbOdds && dbOdds.length > 0) {
+                                dbOdds.forEach(row => {
+                                    if (row.vegas_spread !== null && row.vegas_total !== null) {
+                                        marketOddsMap[row.game_id] = { spread: row.vegas_spread, total: row.vegas_total };
                                     }
-                                }
+                                });
                             }
-                        } catch (csvErr) {
-                            console.log("No custom market_odds.csv found or error parsing it. Skipping Model 4 initial seed.");
+                        } catch (supabaseErr) {
+                            console.log("No custom cloud database table found or error parsing it. Skipping Model 4 initial seed.", supabaseErr.message);
                         }
 
                         // 2a. Fetch historical games team-by-team to get exactly 25 games for everyone
