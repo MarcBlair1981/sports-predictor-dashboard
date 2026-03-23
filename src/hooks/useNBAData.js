@@ -135,6 +135,28 @@ export function useNBAData(isHistory = false) {
                             console.warn("Odds API failed (possibly rate limited or expired). Will show games without Vegas odds.", oddsErr.message);
                         }
 
+                        // Fetch Market Odds CSV natively from public folder
+                        const marketOddsMap = {};
+                        try {
+                            const csvRes = await axios.get(`/market_odds.csv?t=${Date.now()}`);
+                            const lines = csvRes.data.split('\n');
+                            for (let i = 1; i < lines.length; i++) {
+                                const row = lines[i].trim();
+                                if (!row) continue;
+                                const cols = row.split(',');
+                                if (cols.length >= 8 && cols[6] && cols[7]) {
+                                    const id = parseInt(cols[0], 10);
+                                    const spread = parseFloat(cols[6]);
+                                    const total = parseFloat(cols[7]);
+                                    if (!isNaN(id) && !isNaN(spread) && !isNaN(total)) {
+                                        marketOddsMap[id] = { spread, total };
+                                    }
+                                }
+                            }
+                        } catch (csvErr) {
+                            console.log("No custom market_odds.csv found or error parsing it. Skipping Model 4 initial seed.");
+                        }
+
                         // 2a. Fetch historical games team-by-team to get exactly 25 games for everyone
                         // To prevent 429 Rate Limits, we cache this data in localStorage for the day.
                         const CACHE_KEY = 'nba_ema_historical_games_v5';
@@ -234,14 +256,12 @@ export function useNBAData(isHistory = false) {
 
                         // Calculate EMA Team Stats
                         const teamEMAStats = {};
+                        const teamModel4Stats = {};
                         
                         // Initialize with default ratings
                         Object.keys(DEFAULT_RATINGS).forEach(teamName => {
-                             teamEMAStats[teamName] = {
-                                 off_rating: DEFAULT_RATINGS[teamName].off_rating,
-                                 def_rating: DEFAULT_RATINGS[teamName].def_rating,
-                                 games_played: 0
-                             };
+                             teamEMAStats[teamName] = { ...DEFAULT_RATINGS[teamName], games_played: 0 };
+                             teamModel4Stats[teamName] = { ...DEFAULT_RATINGS[teamName], games_played: 0 };
                         });
 
                         allPastGames.forEach(game => {
@@ -265,6 +285,28 @@ export function useNBAData(isHistory = false) {
                                 teamEMAStats[aName].off_rating = (game.visitor_team_score * warmAwayAlpha) + (teamEMAStats[aName].off_rating * (1 - warmAwayAlpha));
                                 teamEMAStats[aName].def_rating = (game.home_team_score * warmAwayAlpha) + (teamEMAStats[aName].def_rating * (1 - warmAwayAlpha));
                                 teamEMAStats[aName].games_played++;
+
+                                // --- MODEL 4 (MARKET IMPLIED) STATS ---
+                                let hScore4 = game.home_team_score;
+                                let aScore4 = game.visitor_team_score;
+                                
+                                // If we have Vegas market odds for this game, reverse engineer the Implied Vegas Scores!
+                                if (marketOddsMap[game.id]) {
+                                    const { spread, total } = marketOddsMap[game.id];
+                                    hScore4 = (total - spread) / 2.0;
+                                    aScore4 = (total + spread) / 2.0;
+                                }
+
+                                const m4WarmAlpha = teamModel4Stats[hName].games_played < 10 ? 0.2 : EMA_ALPHA;
+                                const m4WarmAwayAlpha = teamModel4Stats[aName].games_played < 10 ? 0.2 : EMA_ALPHA;
+
+                                teamModel4Stats[hName].off_rating = (hScore4 * m4WarmAlpha) + (teamModel4Stats[hName].off_rating * (1 - m4WarmAlpha));
+                                teamModel4Stats[hName].def_rating = (aScore4 * m4WarmAlpha) + (teamModel4Stats[hName].def_rating * (1 - m4WarmAlpha));
+                                teamModel4Stats[hName].games_played++;
+                                
+                                teamModel4Stats[aName].off_rating = (aScore4 * m4WarmAwayAlpha) + (teamModel4Stats[aName].off_rating * (1 - m4WarmAwayAlpha));
+                                teamModel4Stats[aName].def_rating = (hScore4 * m4WarmAwayAlpha) + (teamModel4Stats[aName].def_rating * (1 - m4WarmAwayAlpha));
+                                teamModel4Stats[aName].games_played++;
                             } else {
                                 if (!teamEMAStats[hName]) console.warn(`No match for team: "${hName}"`);
                                 if (!teamEMAStats[aName]) console.warn(`No match for team: "${aName}"`);
@@ -301,6 +343,9 @@ export function useNBAData(isHistory = false) {
                             
                             const hEmaStats = teamEMAStats[bdlHome] || hStaticStats;
                             const aEmaStats = teamEMAStats[bdlAway] || aStaticStats;
+                            
+                            const hModel4Stats = teamModel4Stats[bdlHome] || hStaticStats;
+                            const aModel4Stats = teamModel4Stats[bdlAway] || aStaticStats;
 
                             return {
                                 id: game.id,
@@ -311,14 +356,16 @@ export function useNBAData(isHistory = false) {
                                     name: bdlHome,
                                     abbreviation: game.home_team.abbreviation,
                                     static_rating: hStaticStats,
-                                    ema_rating: hEmaStats
+                                    ema_rating: hEmaStats,
+                                    model_4_rating: hModel4Stats
                                 },
                                 away: {
                                     id: game.visitor_team.id,
                                     name: bdlAway,
                                     abbreviation: game.visitor_team.abbreviation,
                                     static_rating: aStaticStats,
-                                    ema_rating: aEmaStats
+                                    ema_rating: aEmaStats,
+                                    model_4_rating: aModel4Stats
                                 },
                                 vegas: vegasSpread !== null ? { spread: vegasSpread, total: vegasTotal } : null,
                                 actual_score: game.status === 'Final' ? { home: game.home_team_score, away: game.visitor_team_score } : null
@@ -375,6 +422,18 @@ export function useNBAData(isHistory = false) {
                     const emaSpread = pAwayEma - pHomeEma;
                     const emaTotal = pHomeEma + pAwayEma;
 
+                    // --- MODEL 4 (MARKET IMPLIED) CALCULATION ---
+                    const m4HomeOff = homeTeam.model_4_rating.off_rating + homeAdditive;
+                    const m4AwayOff = awayTeam.model_4_rating.off_rating + awayAdditive;
+                    const m4HomeDef = homeTeam.model_4_rating.def_rating + homeDefAdditive;
+                    const m4AwayDef = awayTeam.model_4_rating.def_rating + awayDefAdditive;
+                    
+                    let pHomeM4 = LEAGUE_AVG * (m4HomeOff / LEAGUE_AVG) * (m4AwayDef / LEAGUE_AVG) + homeHGA;
+                    let pAwayM4 = LEAGUE_AVG * (m4AwayOff / LEAGUE_AVG) * (m4HomeDef / LEAGUE_AVG);
+                    
+                    const m4Spread = pAwayM4 - pHomeM4;
+                    const m4Total = pHomeM4 + pAwayM4;
+
                     // Evaluate Edge based on the new Model 1
                     const edge = game.vegas ? Math.abs(emaSpread - game.vegas.spread) : 0;
                     const isValuePlay = edge >= 2.0;
@@ -403,6 +462,13 @@ export function useNBAData(isHistory = false) {
                             total: emaTotal,
                             games_sampled: homeTeam.ema_rating.games_played
                         },
+                        model_4_line: {
+                            home_score: pHomeM4,
+                            away_score: pAwayM4,
+                            spread: m4Spread,
+                            total: m4Total,
+                            games_sampled: homeTeam.model_4_rating.games_played
+                        },
                         edge,
                         isValuePlay,
                         wasAccurate
@@ -430,8 +496,8 @@ function generateMockGames(date, isHistory) {
         {
             id: isHistory ? 'hist1' : 'g1',
             date: date,
-            home: { ...MOCK_TEAMS[0], static_rating: MOCK_TEAMS[0], ema_rating: MOCK_TEAMS[0] }, // BOS
-            away: { ...MOCK_TEAMS[1], static_rating: MOCK_TEAMS[1], ema_rating: MOCK_TEAMS[1] }, // LAL
+            home: { ...MOCK_TEAMS[0], static_rating: MOCK_TEAMS[0], ema_rating: MOCK_TEAMS[0], model_4_rating: MOCK_TEAMS[0] }, // BOS
+            away: { ...MOCK_TEAMS[1], static_rating: MOCK_TEAMS[1], ema_rating: MOCK_TEAMS[1], model_4_rating: MOCK_TEAMS[1] }, // LAL
             status: isHistory ? 'Final' : '7:30 PM EST',
             vegas: { spread: -6.5, total: 228.5 }, // BOS favored by 6.5
             actual_score: isHistory ? { home: 118, away: 110 } : null // BOS won by 8 -> covered
@@ -439,8 +505,8 @@ function generateMockGames(date, isHistory) {
         {
             id: isHistory ? 'hist2' : 'g2',
             date: date,
-            home: { ...MOCK_TEAMS[2], static_rating: MOCK_TEAMS[2], ema_rating: MOCK_TEAMS[2] }, // DEN
-            away: { ...MOCK_TEAMS[3], static_rating: MOCK_TEAMS[3], ema_rating: MOCK_TEAMS[3] }, // MIA
+            home: { ...MOCK_TEAMS[2], static_rating: MOCK_TEAMS[2], ema_rating: MOCK_TEAMS[2], model_4_rating: MOCK_TEAMS[2] }, // DEN
+            away: { ...MOCK_TEAMS[3], static_rating: MOCK_TEAMS[3], ema_rating: MOCK_TEAMS[3], model_4_rating: MOCK_TEAMS[3] }, // MIA
             status: isHistory ? 'Final' : '9:00 PM EST',
             vegas: { spread: -8.0, total: 215.0 }, // DEN favored by 8
             actual_score: isHistory ? { home: 108, away: 104 } : null // DEN won by 4 -> missed cover
@@ -448,8 +514,8 @@ function generateMockGames(date, isHistory) {
         {
             id: isHistory ? 'hist3' : 'g3',
             date: date,
-            home: { ...MOCK_TEAMS[4], static_rating: MOCK_TEAMS[4], ema_rating: MOCK_TEAMS[4] }, // GSW
-            away: { ...MOCK_TEAMS[5], static_rating: MOCK_TEAMS[5], ema_rating: MOCK_TEAMS[5] }, // PHX
+            home: { ...MOCK_TEAMS[4], static_rating: MOCK_TEAMS[4], ema_rating: MOCK_TEAMS[4], model_4_rating: MOCK_TEAMS[4] }, // GSW
+            away: { ...MOCK_TEAMS[5], static_rating: MOCK_TEAMS[5], ema_rating: MOCK_TEAMS[5], model_4_rating: MOCK_TEAMS[5] }, // PHX
             status: isHistory ? 'Final' : '10:30 PM EST',
             vegas: { spread: -2.5, total: 232.0 }, // GSW favored by 2.5
             actual_score: isHistory ? { home: 121, away: 125 } : null // Ouch

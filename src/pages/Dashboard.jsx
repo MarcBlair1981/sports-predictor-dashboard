@@ -18,7 +18,7 @@ function StatBadge({ label, value, colorClass = "text-white", tooltip }) {
 }
 
 function GameCard({ game }) {
-    const { home, away, static_line, model_1_line, vegas, edge, isValuePlay, status } = game;
+    const { home, away, static_line, model_1_line, model_4_line, vegas, edge, isValuePlay, status } = game;
 
     // Format spreading logic
     // For Vegas lines, we still want to read the raw number provided (e.g., -6.5).
@@ -37,6 +37,7 @@ function GameCard({ game }) {
 
     const staticSpreadStr = formatSpread(static_line.spread, home.abbreviation, away.abbreviation);
     const model1SpreadStr = formatSpread(model_1_line.spread, home.abbreviation, away.abbreviation);
+    const model4SpreadStr = formatSpread(model_4_line.spread, home.abbreviation, away.abbreviation);
     const vegasSpreadStr = vegas ? formatSpread(vegas.spread, home.abbreviation, away.abbreviation, true) : 'N/A';
 
     // Time Formatter
@@ -54,7 +55,7 @@ function GameCard({ game }) {
     }
 
     return (
-        <div className="bg-sportsbook-card border border-gray-800 rounded-2xl overflow-hidden hover:border-gray-600 transition-all duration-300 shadow-xl group">
+        <div className="bg-sportsbook-card border border-gray-800 rounded-2xl overflow-hidden hover:border-gray-600 transition-all duration-300 shadow-xl">
             {/* Header */}
             <div className="bg-gray-900/50 px-5 py-3 flex justify-between items-center border-b border-gray-800">
                 <div className="flex items-center space-x-2 text-sm text-gray-400 font-medium">
@@ -117,7 +118,7 @@ function GameCard({ game }) {
 
                     {/* Lines Comparison */}
                     <div className="flex-1 min-w-[320px]">
-                        <div className="grid grid-cols-3 gap-3">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                             
                             {/* Column 1: Vegas (The Target) */}
                             <div className="flex flex-col space-y-2">
@@ -134,21 +135,6 @@ function GameCard({ game }) {
                                 />
                             </div>
 
-                            {/* Column 2: Static Baseline */}
-                            <div className="flex flex-col space-y-2">
-                                <div className="text-[10px] text-gray-500 uppercase tracking-widest font-bold text-center border-b border-gray-800 pb-1 mb-1">Static</div>
-                                <StatBadge
-                                    label="Spread"
-                                    value={staticSpreadStr}
-                                    colorClass="text-gray-400"
-                                />
-                                <StatBadge
-                                    label="Total"
-                                    value={`O/U ${static_line.total.toFixed(1)}`}
-                                    colorClass="text-gray-400 bg-gray-900/40"
-                                />
-                            </div>
-
                             {/* Column 3: Model 1 (EMA) */}
                             <div className="flex flex-col space-y-2 bg-blue-950/10 rounded-xl p-1 -m-1 border border-blue-900/20">
                                 <div className="text-[10px] text-sportsbook-light uppercase tracking-widest font-bold text-center border-b border-blue-900/30 pb-1 mb-1">Model 1</div>
@@ -162,6 +148,22 @@ function GameCard({ game }) {
                                     label="Total"
                                     value={`O/U ${model_1_line.total.toFixed(1)}`}
                                     colorClass="text-sportsbook-accent bg-blue-950/20"
+                                />
+                            </div>
+
+                            {/* Column 3: Mkt Imp Model */}
+                            <div className="flex flex-col space-y-2 bg-purple-950/10 rounded-xl p-1 -m-1 border border-purple-900/30">
+                                <div className="text-[10px] text-purple-400 uppercase tracking-widest font-bold text-center border-b border-purple-900/40 pb-1 mb-1">Mkt Imp</div>
+                                <StatBadge
+                                    label="Spread"
+                                    value={model4SpreadStr}
+                                    tooltip={`Derived from Market Implied Odds EMA (L${model_4_line.games_sampled || 25} games)`}
+                                    colorClass="text-purple-300 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]"
+                                />
+                                <StatBadge
+                                    label="Total"
+                                    value={`O/U ${model_4_line.total.toFixed(1)}`}
+                                    colorClass="text-purple-400 bg-purple-950/30"
                                 />
                             </div>
 

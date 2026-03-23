@@ -37,36 +37,36 @@ Game ID,Date,Home Team,Away Team,Home Score,Away Score,Vegas Spread (Home Favore
 18447823,18/03/2026,New Orleans Pelicans,LA Clippers,124,109,-1.5,236.5
 18447824,18/03/2026,Dallas Mavericks,Atlanta Hawks,120,135,7.5,238.5
 18447825,18/03/2026,Houston Rockets,Los Angeles Lakers,116,124,-1.5,222.5
-18447809,17/03/2026,Charlotte Hornets,Miami Heat,136,106,,
-18447810,17/03/2026,Orlando Magic,Oklahoma City Thunder,108,113,,
-18447811,17/03/2026,Washington Wizards,Detroit Pistons,117,130,,
-18447812,17/03/2026,New York Knicks,Indiana Pacers,136,110,,
-18447813,17/03/2026,Milwaukee Bucks,Cleveland Cavaliers,116,123,,
-18447814,17/03/2026,Minnesota Timberwolves,Phoenix Suns,116,104,,
-18447815,17/03/2026,Denver Nuggets,Philadelphia 76ers,124,96,,
-18447816,17/03/2026,Sacramento Kings,San Antonio Spurs,104,132,,
-18447801,16/03/2026,Atlanta Hawks,Orlando Magic,124,112,,
-18447802,16/03/2026,Washington Wizards,Golden State Warriors,117,125,,
-18447803,16/03/2026,Brooklyn Nets,Portland Trail Blazers,95,114,,
-18447804,16/03/2026,Boston Celtics,Phoenix Suns,120,112,,
-18447805,16/03/2026,Chicago Bulls,Memphis Grizzlies,132,107,,
-18447806,16/03/2026,New Orleans Pelicans,Dallas Mavericks,129,111,,
-18447807,16/03/2026,Houston Rockets,Los Angeles Lakers,92,100,,
-18447808,16/03/2026,LA Clippers,San Antonio Spurs,115,119,,
-18447794,15/03/2026,Oklahoma City Thunder,Minnesota Timberwolves,116,103,,
-18447795,15/03/2026,Cleveland Cavaliers,Dallas Mavericks,120,130,,
-18447796,15/03/2026,Toronto Raptors,Detroit Pistons,119,108,,
-18447797,15/03/2026,Milwaukee Bucks,Indiana Pacers,134,123,,
-18447798,15/03/2026,Philadelphia 76ers,Portland Trail Blazers,109,103,,
-18447799,15/03/2026,New York Knicks,Golden State Warriors,110,107,,
-18447800,15/03/2026,Sacramento Kings,Utah Jazz,116,111,,
-18447787,14/03/2026,Philadelphia 76ers,Brooklyn Nets,104,97,,
-18447788,14/03/2026,Atlanta Hawks,Milwaukee Bucks,122,99,,
-18447789,14/03/2026,Boston Celtics,Washington Wizards,111,100,,
-18447790,14/03/2026,Miami Heat,Orlando Magic,117,121,,
-18447791,14/03/2026,San Antonio Spurs,Charlotte Hornets,115,102,,
-18447792,14/03/2026,Los Angeles Lakers,Denver Nuggets,127,125,,
-18447793,14/03/2026,LA Clippers,Sacramento Kings,109,118,,
+18447809,17/03/2026,Charlotte Hornets,Miami Heat,136,106,-4.5,236.5
+18447810,17/03/2026,Orlando Magic,Oklahoma City Thunder,108,113,9.5,223.5
+18447811,17/03/2026,Washington Wizards,Detroit Pistons,117,130,19.5,233.5
+18447812,17/03/2026,New York Knicks,Indiana Pacers,136,110,-13.5,223.5
+18447813,17/03/2026,Milwaukee Bucks,Cleveland Cavaliers,116,123,12.5,226.5
+18447814,17/03/2026,Minnesota Timberwolves,Phoenix Suns,116,104,-3.5,220.5
+18447815,17/03/2026,Denver Nuggets,Philadelphia 76ers,124,96,-15.5,235.5
+18447816,17/03/2026,Sacramento Kings,San Antonio Spurs,104,132,13.5,233.5
+18447801,16/03/2026,Atlanta Hawks,Orlando Magic,124,112,-3.5,231.5
+18447802,16/03/2026,Washington Wizards,Golden State Warriors,117,125,7.5,234.5
+18447803,16/03/2026,Brooklyn Nets,Portland Trail Blazers,95,114,10.5,221.5
+18447804,16/03/2026,Boston Celtics,Phoenix Suns,120,112,-8.5,240.5
+18447805,16/03/2026,Chicago Bulls,Memphis Grizzlies,132,107,-7.5,243.5
+18447806,16/03/2026,New Orleans Pelicans,Dallas Mavericks,129,111,-8.5,240.5
+18447807,16/03/2026,Houston Rockets,Los Angeles Lakers,92,100,-1.5,222.5
+18447808,16/03/2026,LA Clippers,San Antonio Spurs,115,119,7.5,234.5
+18447794,15/03/2026,Oklahoma City Thunder,Minnesota Timberwolves,116,103,-8.5,227.5
+18447795,15/03/2026,Cleveland Cavaliers,Dallas Mavericks,120,130,-14.5,233.5
+18447796,15/03/2026,Toronto Raptors,Detroit Pistons,119,108,3.5,224.5
+18447797,15/03/2026,Milwaukee Bucks,Indiana Pacers,134,123,-7.5,228.5
+18447798,15/03/2026,Philadelphia 76ers,Portland Trail Blazers,109,103,8.5,229.5
+18447799,15/03/2026,New York Knicks,Golden State Warriors,110,107,-14.5,218.5
+18447800,15/03/2026,Sacramento Kings,Utah Jazz,116,111,-3.5,230.5
+18447787,14/03/2026,Philadelphia 76ers,Brooklyn Nets,104,97,-8.5,217.5
+18447788,14/03/2026,Atlanta Hawks,Milwaukee Bucks,122,99,-10.5,228.5
+18447789,14/03/2026,Boston Celtics,Washington Wizards,111,100,-20.5,232.5
+18447790,14/03/2026,Miami Heat,Orlando Magic,117,121,-4.5,236.5
+18447791,14/03/2026,San Antonio Spurs,Charlotte Hornets,115,102,-6.5,231.5
+18447792,14/03/2026,Los Angeles Lakers,Denver Nuggets,127,125,1.5,244.5
+18447793,14/03/2026,LA Clippers,Sacramento Kings,109,118,-13.5,231.5
 18447779,13/03/2026,Detroit Pistons,Memphis Grizzlies,126,110,,
 18447780,13/03/2026,Indiana Pacers,New York Knicks,92,101,,
 18447781,13/03/2026,Toronto Raptors,Phoenix Suns,122,115,,
