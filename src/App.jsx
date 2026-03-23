@@ -1,8 +1,9 @@
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Home, Settings, History, Activity } from 'lucide-react';
+import { Home, Settings, History, Activity, BookOpen } from 'lucide-react';
 import Dashboard from './pages/Dashboard';
 import SettingsPage from './pages/Settings';
 import HistoryPage from './pages/History';
+import GuidePage from './pages/Guide';
 
 function Navbar() {
   const location = useLocation();
@@ -32,6 +33,10 @@ function Navbar() {
             <Settings size={18} />
             <span className="hidden sm:inline font-medium">Settings</span>
           </Link>
+          <Link to="/guide" className={`flex items-center space-x-2 pb-1 transition-all duration-300 ${isActive('/guide')}`}>
+            <BookOpen size={18} />
+            <span className="hidden sm:inline font-medium">Guide</span>
+          </Link>
         </div>
       </div>
     </nav>
@@ -48,6 +53,7 @@ export default function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/history" element={<HistoryPage />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/guide" element={<GuidePage />} />
           </Routes>
         </main>
       </div>

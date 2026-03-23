@@ -2,14 +2,18 @@ import React from 'react';
 import { useNBAData } from '../hooks/useNBAData';
 import { AlertCircle, TrendingUp, TrendingDown, Clock, MoveRight } from 'lucide-react';
 
-function StatBadge({ label, value, colorClass = "text-white", tooltip }) {
+function StatBadge({ label, value, colorClass = "text-white", tooltip, rightAlignTooltip = false }) {
+    const alignmentClasses = rightAlignTooltip 
+        ? "right-0 translate-y-1 group-hover:-translate-y-1" 
+        : "left-1/2 -translate-x-1/2 translate-y-1 group-hover:-translate-y-1";
+
     return (
         <div className="flex flex-col items-center bg-gray-800/50 rounded-lg p-2 flex-1 relative group cursor-help transition-colors hover:bg-gray-800/80">
             <span className="text-xs text-gray-400 uppercase tracking-wider mb-1 font-semibold">{label}</span>
             <span className={`text-lg font-bold ${colorClass}`}>{value}</span>
 
             {tooltip && (
-                <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-950 border border-gray-700 text-xs text-gray-300 px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-1 group-hover:-translate-y-1 whitespace-nowrap pointer-events-none z-50 shadow-2xl font-mono">
+                <div className={`absolute -top-10 ${alignmentClasses} bg-gray-950 border border-gray-700 text-xs text-gray-300 px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap pointer-events-none z-50 shadow-2xl font-mono`}>
                     {tooltip}
                 </div>
             )}
@@ -55,9 +59,9 @@ function GameCard({ game }) {
     }
 
     return (
-        <div className="bg-sportsbook-card border border-gray-800 rounded-2xl overflow-hidden hover:border-gray-600 transition-all duration-300 shadow-xl">
+        <div className="bg-sportsbook-card border border-gray-800 rounded-2xl hover:border-gray-600 transition-all duration-300 shadow-xl">
             {/* Header */}
-            <div className="bg-gray-900/50 px-5 py-3 flex justify-between items-center border-b border-gray-800">
+            <div className="bg-gray-900/50 px-5 py-3 flex justify-between items-center border-b border-gray-800 rounded-t-2xl">
                 <div className="flex items-center space-x-2 text-sm text-gray-400 font-medium">
                     <Clock size={16} className="text-sportsbook-accent" />
                     <span>{displayTime}</span>
@@ -157,8 +161,9 @@ function GameCard({ game }) {
                                 <StatBadge
                                     label="Spread"
                                     value={model4SpreadStr}
-                                    tooltip={`Derived from Market Implied Odds EMA (L${model_4_line.games_sampled || 25} games)`}
+                                    tooltip={`Derived from Mkt Odds EMA (${model_4_line.market_games_sampled || 0}/${model_4_line.games_sampled || 25} games found in CSV)`}
                                     colorClass="text-purple-300 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]"
+                                    rightAlignTooltip={true}
                                 />
                                 <StatBadge
                                     label="Total"

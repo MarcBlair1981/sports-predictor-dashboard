@@ -125,9 +125,8 @@ export function useNBAData(isHistory = false) {
                             const oddsResponse = await axios.get(`https://api.the-odds-api.com/v4/sports/basketball_nba/odds`, {
                                 params: {
                                     apiKey: ODDS_KEY,
-                                    regions: 'us',
-                                    markets: 'spreads,totals',
-                                    bookmakers: 'draftkings'
+                                    regions: 'us,eu',
+                                    markets: 'spreads,totals'
                                 }
                             });
                             oddsEvents = oddsResponse.data;
@@ -261,7 +260,7 @@ export function useNBAData(isHistory = false) {
                         // Initialize with default ratings
                         Object.keys(DEFAULT_RATINGS).forEach(teamName => {
                              teamEMAStats[teamName] = { ...DEFAULT_RATINGS[teamName], games_played: 0 };
-                             teamModel4Stats[teamName] = { ...DEFAULT_RATINGS[teamName], games_played: 0 };
+                             teamModel4Stats[teamName] = { ...DEFAULT_RATINGS[teamName], games_played: 0, market_games_sampled: 0 };
                         });
 
                         allPastGames.forEach(game => {
@@ -289,12 +288,14 @@ export function useNBAData(isHistory = false) {
                                 // --- MODEL 4 (MARKET IMPLIED) STATS ---
                                 let hScore4 = game.home_team_score;
                                 let aScore4 = game.visitor_team_score;
+                                let isMarketGame = false;
                                 
                                 // If we have Vegas market odds for this game, reverse engineer the Implied Vegas Scores!
                                 if (marketOddsMap[game.id]) {
                                     const { spread, total } = marketOddsMap[game.id];
                                     hScore4 = (total - spread) / 2.0;
                                     aScore4 = (total + spread) / 2.0;
+                                    isMarketGame = true;
                                 }
 
                                 const m4WarmAlpha = teamModel4Stats[hName].games_played < 10 ? 0.2 : EMA_ALPHA;
@@ -303,10 +304,12 @@ export function useNBAData(isHistory = false) {
                                 teamModel4Stats[hName].off_rating = (hScore4 * m4WarmAlpha) + (teamModel4Stats[hName].off_rating * (1 - m4WarmAlpha));
                                 teamModel4Stats[hName].def_rating = (aScore4 * m4WarmAlpha) + (teamModel4Stats[hName].def_rating * (1 - m4WarmAlpha));
                                 teamModel4Stats[hName].games_played++;
+                                if (isMarketGame) teamModel4Stats[hName].market_games_sampled++;
                                 
                                 teamModel4Stats[aName].off_rating = (aScore4 * m4WarmAwayAlpha) + (teamModel4Stats[aName].off_rating * (1 - m4WarmAwayAlpha));
                                 teamModel4Stats[aName].def_rating = (hScore4 * m4WarmAwayAlpha) + (teamModel4Stats[aName].def_rating * (1 - m4WarmAwayAlpha));
                                 teamModel4Stats[aName].games_played++;
+                                if (isMarketGame) teamModel4Stats[aName].market_games_sampled++;
                             } else {
                                 if (!teamEMAStats[hName]) console.warn(`No match for team: "${hName}"`);
                                 if (!teamEMAStats[aName]) console.warn(`No match for team: "${aName}"`);
@@ -324,16 +327,29 @@ export function useNBAData(isHistory = false) {
                             let vegasTotal = null;
 
                             if (matchOdds && matchOdds.bookmakers && matchOdds.bookmakers.length > 0) {
-                                const dk = matchOdds.bookmakers[0];
-                                const spreadMarket = dk.markets.find(m => m.key === 'spreads');
-                                const totalMarket = dk.markets.find(m => m.key === 'totals');
+                                // Strictly prioritize tier 1 global books
+                                const targetBookies = ['pinnacle', 'draftkings', 'fanduel', 'bovada'];
+                                
+                                const sortedBookmakers = [...matchOdds.bookmakers].sort((a, b) => {
+                                    const idxA = targetBookies.indexOf(a.key);
+                                    const idxB = targetBookies.indexOf(b.key);
+                                    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                                    if (idxA !== -1) return -1; // Give a the top slot
+                                    if (idxB !== -1) return 1; // Give b the top slot
+                                    return 0; // Don't care
+                                });
 
-                                if (spreadMarket) {
-                                    const homeOutcome = spreadMarket.outcomes.find(o => o.name === matchOdds.home_team);
-                                    if (homeOutcome) vegasSpread = homeOutcome.point;
-                                }
-                                if (totalMarket) {
-                                    vegasTotal = totalMarket.outcomes[0].point;
+                                // Loop through sorted hierarchy until a fully formed market is found
+                                for (let bk of sortedBookmakers) {
+                                    const spreadMarket = bk.markets.find(m => m.key === 'spreads');
+                                    const totalMarket = bk.markets.find(m => m.key === 'totals');
+                                    
+                                    if (spreadMarket && totalMarket) {
+                                        const homeOutcome = spreadMarket.outcomes.find(o => o.name === matchOdds.home_team);
+                                        if (homeOutcome) vegasSpread = homeOutcome.point;
+                                        vegasTotal = totalMarket.outcomes[0].point;
+                                        break; // Found our prime odds!
+                                    }
                                 }
                             }
 
@@ -467,7 +483,8 @@ export function useNBAData(isHistory = false) {
                             away_score: pAwayM4,
                             spread: m4Spread,
                             total: m4Total,
-                            games_sampled: homeTeam.model_4_rating.games_played
+                            games_sampled: homeTeam.model_4_rating.games_played,
+                            market_games_sampled: homeTeam.model_4_rating.market_games_sampled
                         },
                         edge,
                         isValuePlay,

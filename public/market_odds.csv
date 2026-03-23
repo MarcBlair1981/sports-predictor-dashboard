@@ -1,9 +1,9 @@
 Game ID,Date,Home Team,Away Team,Home Score,Away Score,Vegas Spread (Home Favored),Vegas Total (O/U)
-18447850,22/03/2026,Denver Nuggets,Portland Trail Blazers,128,112,,
-18447851,22/03/2026,Sacramento Kings,Brooklyn Nets,126,122,,
-18447852,22/03/2026,New York Knicks,Washington Wizards,145,113,,
-18447853,22/03/2026,Boston Celtics,Minnesota Timberwolves,92,102,,
-18447854,22/03/2026,Phoenix Suns,Toronto Raptors,120,98,,
+18447850,22/03/2026,Denver Nuggets,Portland Trail Blazers,128,112,-7.5,236.5
+18447851,22/03/2026,Sacramento Kings,Brooklyn Nets,126,122,-6.5,218.5
+18447852,22/03/2026,New York Knicks,Washington Wizards,145,113,-21.5,228.5
+18447853,22/03/2026,Boston Celtics,Minnesota Timberwolves,92,102,-10.5,222.5
+18447854,22/03/2026,Phoenix Suns,Toronto Raptors,120,98,4.5,219.5
 18447840,21/03/2026,Washington Wizards,Oklahoma City Thunder,111,132,21.5,230.5
 18447841,21/03/2026,Charlotte Hornets,Memphis Grizzlies,124,101,-18.5,233.5
 18447842,21/03/2026,Orlando Magic,Los Angeles Lakers,104,105,3.5,234.5
@@ -67,68 +67,68 @@ Game ID,Date,Home Team,Away Team,Home Score,Away Score,Vegas Spread (Home Favore
 18447791,14/03/2026,San Antonio Spurs,Charlotte Hornets,115,102,-6.5,231.5
 18447792,14/03/2026,Los Angeles Lakers,Denver Nuggets,127,125,1.5,244.5
 18447793,14/03/2026,LA Clippers,Sacramento Kings,109,118,-13.5,231.5
-18447779,13/03/2026,Detroit Pistons,Memphis Grizzlies,126,110,,
-18447780,13/03/2026,Indiana Pacers,New York Knicks,92,101,,
-18447781,13/03/2026,Toronto Raptors,Phoenix Suns,122,115,,
-18447782,13/03/2026,Houston Rockets,New Orleans Pelicans,107,105,,
-18447783,13/03/2026,Dallas Mavericks,Cleveland Cavaliers,105,138,,
-18447784,13/03/2026,Golden State Warriors,Minnesota Timberwolves,117,127,,
-18447785,13/03/2026,Portland Trail Blazers,Utah Jazz,124,114,,
-18447786,13/03/2026,LA Clippers,Chicago Bulls,119,108,,
-18447771,12/03/2026,Detroit Pistons,Philadelphia 76ers,131,109,,
-18447772,12/03/2026,Indiana Pacers,Phoenix Suns,108,123,,
-18447773,12/03/2026,Orlando Magic,Washington Wizards,136,131,,
-18447774,12/03/2026,Atlanta Hawks,Brooklyn Nets,108,97,,
-18447775,12/03/2026,Miami Heat,Milwaukee Bucks,112,105,,
-18447776,12/03/2026,San Antonio Spurs,Denver Nuggets,131,136,,
-18447777,12/03/2026,Oklahoma City Thunder,Boston Celtics,104,102,,
-18447778,12/03/2026,Los Angeles Lakers,Chicago Bulls,142,130,,
-18447929,12/03/2026,Memphis Grizzlies,Dallas Mavericks,112,120,,
-18447765,11/03/2026,Orlando Magic,Cleveland Cavaliers,128,122,,
-18447766,11/03/2026,New Orleans Pelicans,Toronto Raptors,122,111,,
-18447767,11/03/2026,Utah Jazz,New York Knicks,117,134,,
-18447768,11/03/2026,Denver Nuggets,Houston Rockets,129,93,,
-18447769,11/03/2026,Sacramento Kings,Charlotte Hornets,109,117,,
-18447770,11/03/2026,LA Clippers,Minnesota Timberwolves,153,128,,
-18447754,10/03/2026,Philadelphia 76ers,Memphis Grizzlies,139,129,,
-18447755,10/03/2026,Brooklyn Nets,Detroit Pistons,100,138,,
-18447756,10/03/2026,Miami Heat,Washington Wizards,150,129,,
-18447757,10/03/2026,Atlanta Hawks,Dallas Mavericks,124,112,,
-18447758,10/03/2026,Houston Rockets,Toronto Raptors,113,99,,
-18447759,10/03/2026,Milwaukee Bucks,Phoenix Suns,114,129,,
-18447760,10/03/2026,San Antonio Spurs,Boston Celtics,125,116,,
-18447761,10/03/2026,Golden State Warriors,Chicago Bulls,124,130,,
-18447762,10/03/2026,Portland Trail Blazers,Charlotte Hornets,101,103,,
-18447763,10/03/2026,Sacramento Kings,Indiana Pacers,114,109,,
-18447764,10/03/2026,Los Angeles Lakers,Minnesota Timberwolves,120,106,,
-18447749,09/03/2026,Cleveland Cavaliers,Philadelphia 76ers,115,101,,
-18447750,09/03/2026,Brooklyn Nets,Memphis Grizzlies,126,115,,
-18447751,09/03/2026,Oklahoma City Thunder,Denver Nuggets,129,126,,
-18447752,09/03/2026,Utah Jazz,Golden State Warriors,119,116,,
-18447753,09/03/2026,LA Clippers,New York Knicks,126,118,,
-18447739,08/03/2026,Cleveland Cavaliers,Boston Celtics,98,109,,
-18447740,08/03/2026,Los Angeles Lakers,New York Knicks,110,97,,
-18447741,08/03/2026,Miami Heat,Detroit Pistons,121,110,,
-18447742,08/03/2026,Toronto Raptors,Dallas Mavericks,122,92,,
-18447743,08/03/2026,New Orleans Pelicans,Washington Wizards,138,118,,
-18447744,08/03/2026,Milwaukee Bucks,Orlando Magic,91,130,,
-18447745,08/03/2026,San Antonio Spurs,Houston Rockets,145,120,,
-18447746,08/03/2026,Phoenix Suns,Charlotte Hornets,111,99,,
-18447747,08/03/2026,Portland Trail Blazers,Indiana Pacers,131,111,,
-18447748,08/03/2026,Sacramento Kings,Chicago Bulls,126,110,,
-18447733,07/03/2026,Minnesota Timberwolves,Orlando Magic,92,119,,
-18447734,07/03/2026,Detroit Pistons,Brooklyn Nets,105,107,,
-18447735,07/03/2026,Atlanta Hawks,Philadelphia 76ers,125,116,,
-18447736,07/03/2026,Memphis Grizzlies,LA Clippers,120,123,,
-18447737,07/03/2026,Milwaukee Bucks,Utah Jazz,113,99,,
-18447738,07/03/2026,Oklahoma City Thunder,Golden State Warriors,104,97,,
-18447726,06/03/2026,Boston Celtics,Dallas Mavericks,120,100,,
-18447727,06/03/2026,Charlotte Hornets,Miami Heat,120,128,,
-18447728,06/03/2026,Houston Rockets,Portland Trail Blazers,106,99,,
-18447729,06/03/2026,Denver Nuggets,New York Knicks,103,142,,
-18447730,06/03/2026,Phoenix Suns,New Orleans Pelicans,118,116,,
-18447731,06/03/2026,San Antonio Spurs,LA Clippers,116,112,,
-18447732,06/03/2026,Los Angeles Lakers,Indiana Pacers,128,117,,
+18447779,13/03/2026,Detroit Pistons,Memphis Grizzlies,126,110,-16.5,232.5
+18447780,13/03/2026,Indiana Pacers,New York Knicks,92,101,12.5,227.5
+18447781,13/03/2026,Toronto Raptors,Phoenix Suns,122,115,-5.5,220.5
+18447782,13/03/2026,Houston Rockets,New Orleans Pelicans,107,105,-5.5,230.5
+18447783,13/03/2026,Dallas Mavericks,Cleveland Cavaliers,105,138,12.5,236.5
+18447784,13/03/2026,Golden State Warriors,Minnesota Timberwolves,117,127,4.5,223.5
+18447785,13/03/2026,Portland Trail Blazers,Utah Jazz,124,114,-15.5,235.5
+18447786,13/03/2026,LA Clippers,Chicago Bulls,119,108,-13.5,235.5
+18447771,12/03/2026,Detroit Pistons,Philadelphia 76ers,131,109,-14.5,224.5
+18447772,12/03/2026,Indiana Pacers,Phoenix Suns,108,123,9.5,223.5
+18447773,12/03/2026,Orlando Magic,Washington Wizards,136,131,-14.5,235.5
+18447774,12/03/2026,Atlanta Hawks,Brooklyn Nets,108,97,-15.5,226.5
+18447775,12/03/2026,Miami Heat,Milwaukee Bucks,112,105,-5.5,234.5
+18447776,12/03/2026,San Antonio Spurs,Denver Nuggets,131,136,-3.5,241.5
+18447777,12/03/2026,Oklahoma City Thunder,Boston Celtics,104,102,-8.5,216.5
+18447778,12/03/2026,Los Angeles Lakers,Chicago Bulls,142,130,-10.5,240.5
+18447929,12/03/2026,Memphis Grizzlies,Dallas Mavericks,112,120,5.5,239.5
+18447765,11/03/2026,Orlando Magic,Cleveland Cavaliers,128,122,3.5,226.5
+18447766,11/03/2026,New Orleans Pelicans,Toronto Raptors,122,111,-1.5,235.5
+18447767,11/03/2026,Utah Jazz,New York Knicks,117,134,13.5,231.5
+18447768,11/03/2026,Denver Nuggets,Houston Rockets,129,93,-6.5,231.5
+18447769,11/03/2026,Sacramento Kings,Charlotte Hornets,109,117,14.5,223.5
+18447770,11/03/2026,LA Clippers,Minnesota Timberwolves,153,128,-2.5,225.5
+18447754,10/03/2026,Philadelphia 76ers,Memphis Grizzlies,139,129,-4.5,228.5
+18447755,10/03/2026,Brooklyn Nets,Detroit Pistons,100,138,15.5,216.5
+18447756,10/03/2026,Miami Heat,Washington Wizards,150,129,-15.5,236.5
+18447757,10/03/2026,Atlanta Hawks,Dallas Mavericks,124,112,-10.5,240.5
+18447758,10/03/2026,Houston Rockets,Toronto Raptors,113,99,-4.5,220.5
+18447759,10/03/2026,Milwaukee Bucks,Phoenix Suns,114,129,1.5,219.5
+18447760,10/03/2026,San Antonio Spurs,Boston Celtics,125,116,-3.5,221.5
+18447761,10/03/2026,Golden State Warriors,Chicago Bulls,124,130,-5.5,226.5
+18447762,10/03/2026,Portland Trail Blazers,Charlotte Hornets,101,103,2.5,227.5
+18447763,10/03/2026,Sacramento Kings,Indiana Pacers,114,109,-3.5,236.5
+18447764,10/03/2026,Los Angeles Lakers,Minnesota Timberwolves,120,106,3.5,228.5
+18447749,09/03/2026,Cleveland Cavaliers,Philadelphia 76ers,115,101,-14.5,225.5
+18447750,09/03/2026,Brooklyn Nets,Memphis Grizzlies,126,115,-11.5,219.5
+18447751,09/03/2026,Oklahoma City Thunder,Denver Nuggets,129,126,-3.5,235.5
+18447752,09/03/2026,Utah Jazz,Golden State Warriors,119,116,6.5,225.5
+18447753,09/03/2026,LA Clippers,New York Knicks,126,118,1.5,220.5
+18447739,08/03/2026,Cleveland Cavaliers,Boston Celtics,98,109,-1.5,223.5
+18447740,08/03/2026,Los Angeles Lakers,New York Knicks,110,97,5.5,227.5
+18447741,08/03/2026,Miami Heat,Detroit Pistons,121,110,1.5,230.5
+18447742,08/03/2026,Toronto Raptors,Dallas Mavericks,122,92,-9.5,233.5
+18447743,08/03/2026,New Orleans Pelicans,Washington Wizards,138,118,-11.5,244.5
+18447744,08/03/2026,Milwaukee Bucks,Orlando Magic,91,130,6.5,217.5
+18447745,08/03/2026,San Antonio Spurs,Houston Rockets,145,120,-5.5,222.5
+18447746,08/03/2026,Phoenix Suns,Charlotte Hornets,111,99,4.5,218.5
+18447747,08/03/2026,Portland Trail Blazers,Indiana Pacers,131,111,-9.5,237.5
+18447748,08/03/2026,Sacramento Kings,Chicago Bulls,126,110,4.5,236.5
+18447733,07/03/2026,Minnesota Timberwolves,Orlando Magic,92,119,-6.5,224.5
+18447734,07/03/2026,Detroit Pistons,Brooklyn Nets,105,107,-12.5,214.5
+18447735,07/03/2026,Atlanta Hawks,Philadelphia 76ers,125,116,-6.5,233.5
+18447736,07/03/2026,Memphis Grizzlies,LA Clippers,120,123,7.5,228.5
+18447737,07/03/2026,Milwaukee Bucks,Utah Jazz,113,99,-9.5,230.5
+18447738,07/03/2026,Oklahoma City Thunder,Golden State Warriors,104,97,-11.5,219.5
+18447726,06/03/2026,Boston Celtics,Dallas Mavericks,120,100,-14.5,225.5
+18447727,06/03/2026,Charlotte Hornets,Miami Heat,120,128,-7.5,229.5
+18447728,06/03/2026,Houston Rockets,Portland Trail Blazers,106,99,-6.5,220.5
+18447729,06/03/2026,Denver Nuggets,New York Knicks,103,142,-1.5,229.5
+18447730,06/03/2026,Phoenix Suns,New Orleans Pelicans,118,116,-4.5,227.5
+18447731,06/03/2026,San Antonio Spurs,LA Clippers,116,112,-7.5,221.5
+18447732,06/03/2026,Los Angeles Lakers,Indiana Pacers,128,117,-8.5,234.5
 18447717,05/03/2026,Orlando Magic,Dallas Mavericks,115,114,,
 18447718,05/03/2026,Washington Wizards,Utah Jazz,112,122,,
 18447719,05/03/2026,Miami Heat,Brooklyn Nets,126,110,,
