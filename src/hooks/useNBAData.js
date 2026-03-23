@@ -62,7 +62,7 @@ export function useNBAData(isHistory = false) {
                 // Date handling
                 const today = new Date();
                 const targetDate = isHistory ? format(addDays(today, -1), 'yyyy-MM-dd') : format(today, 'yyyy-MM-dd');
-                const seasonStartDate = format(addDays(today, -100), 'yyyy-MM-dd'); // Rough 100 day lookback for at least 25 games
+                const seasonStartDate = format(addDays(today, -120), 'yyyy-MM-dd'); // Rough 120 day lookback for at least 25 games
 
                 // 1. Fetch Modifiers from Supabase
                 let teamModifiers = [];
@@ -97,29 +97,47 @@ export function useNBAData(isHistory = false) {
                         const todayStr = format(today, 'yyyy-MM-dd');
                         const endDate = isHistory ? targetDate : format(addDays(today, 10), 'yyyy-MM-dd');
 
-                        const bdlResponse = await axios.get(`https://api.balldontlie.io/v1/games`, {
-                            params: {
-                                start_date: isHistory ? targetDate : todayStr,
-                                end_date: isHistory ? targetDate : endDate,
-                                per_page: 100
-                            },
-                            headers: { Authorization: BDL_KEY }
-                        });
-                        const oddsResponse = await axios.get(`https://api.the-odds-api.com/v4/sports/basketball_nba/odds`, {
-                            params: {
-                                apiKey: ODDS_KEY,
-                                regions: 'us',
-                                markets: 'spreads,totals',
-                                bookmakers: 'draftkings'
-                            }
-                        });
+                        // Check Upcoming/Current Games Cache First
+                        const UPCOMING_CACHE_KEY = isHistory ? `nba_current_games_hist_${todayStr}` : `nba_current_games_dash_${todayStr}`;
+                        const cachedCurrent = localStorage.getItem(UPCOMING_CACHE_KEY);
+                        
+                        let rawGames = [];
 
-                        const rawGames = bdlResponse.data.data;
-                        const oddsEvents = oddsResponse.data;
+                        if (cachedCurrent) {
+                            rawGames = JSON.parse(cachedCurrent);
+                        } else {
+                            const bdlResponse = await axios.get(`https://api.balldontlie.io/v1/games`, {
+                                params: {
+                                    start_date: isHistory ? targetDate : todayStr,
+                                    end_date: isHistory ? targetDate : endDate,
+                                    per_page: 100
+                                },
+                                headers: { Authorization: BDL_KEY }
+                            });
+                            rawGames = bdlResponse.data.data;
+                            
+                            // Save to cache so UI refreshes don't re-trigger 429 errors
+                            localStorage.setItem(UPCOMING_CACHE_KEY, JSON.stringify(rawGames));
+                        }
+
+                        let oddsEvents = [];
+                        try {
+                            const oddsResponse = await axios.get(`https://api.the-odds-api.com/v4/sports/basketball_nba/odds`, {
+                                params: {
+                                    apiKey: ODDS_KEY,
+                                    regions: 'us',
+                                    markets: 'spreads,totals',
+                                    bookmakers: 'draftkings'
+                                }
+                            });
+                            oddsEvents = oddsResponse.data;
+                        } catch (oddsErr) {
+                            console.warn("Odds API failed (possibly rate limited or expired). Will show games without Vegas odds.", oddsErr.message);
+                        }
 
                         // 2a. Fetch historical games team-by-team to get exactly 25 games for everyone
                         // To prevent 429 Rate Limits, we cache this data in localStorage for the day.
-                        const CACHE_KEY = 'nba_ema_historical_games_v2';
+                        const CACHE_KEY = 'nba_ema_historical_games_v5';
                         const CACHE_DATE_KEY = 'nba_ema_cache_date';
                         const cachedData = localStorage.getItem(CACHE_KEY);
                         const cachedDate = localStorage.getItem(CACHE_DATE_KEY);
@@ -132,46 +150,80 @@ export function useNBAData(isHistory = false) {
                             console.log("Loading EMA historical data from local cache...");
                             allPastGames = JSON.parse(cachedData);
                         } else {
-                            console.log("Cache expired or missing. Performining throttled deep-fetch for 30 teams...");
-                            const delay = (ms) => new Promise(res => setTimeout(res, ms));
+                            console.log("Cache expired or missing. Fetching bulk historical data for all teams...");
+                            
+                            const delay = ms => new Promise(res => setTimeout(res, ms));
+                            let cursor = null;
+                            let keepFetching = true;
+                            let bulkGames = [];
 
-                            for (let i = 0; i < EVERY_TEAM_ID.length; i++) {
-                                const tId = EVERY_TEAM_ID[i];
-                                try {
-                                    const teamGamesRes = await axios.get(`https://api.balldontlie.io/v1/games`, {
-                                        params: {
-                                            team_ids: [tId],
-                                            start_date: seasonStartDate,
-                                            end_date: format(addDays(today, -1), 'yyyy-MM-dd'),
-                                            per_page: 100 
-                                        },
-                                        headers: { Authorization: BDL_KEY }
-                                    });
+                            try {
+                                while (keepFetching) {
+                                    const params = {
+                                        start_date: seasonStartDate,
+                                        end_date: format(addDays(today, -1), 'yyyy-MM-dd'),
+                                        per_page: 100
+                                    };
+                                    if (cursor) params.cursor = cursor;
+
+                                    try {
+                                        const bdlFetch = await axios.get(`https://api.balldontlie.io/v1/games`, {
+                                            params,
+                                            headers: { Authorization: BDL_KEY }
+                                        });
+
+                                        const pageGames = bdlFetch.data.data.filter(g => g.status === 'Final');
+                                        bulkGames.push(...pageGames);
+
+                                        if (bdlFetch.data.meta && bdlFetch.data.meta.next_cursor) {
+                                            cursor = bdlFetch.data.meta.next_cursor;
+                                            await delay(1200); // Wait 1.2s to respect burst limits cleanly
+                                        } else {
+                                            keepFetching = false;
+                                        }
+                                    } catch (pageErr) {
+                                        if (pageErr.response && pageErr.response.status === 429) {
+                                            console.warn("Caught 429 Rate Limit mid-fetch. Backing off for 5 seconds and retrying page.");
+                                            await delay(5000); // Aggressive pause before trying this exact page again
+                                            // do NOT advance the cursor; simply let the while-loop repeat this query
+                                        } else {
+                                            console.warn("Non-recoverable error fetching historical games page:", pageErr.message);
+                                            keepFetching = false; // abort if it's not a rate limit issue
+                                        }
+                                    }
+                                }
+
+                                // We now have all games from the last 100 days. 
+                                // Group them by team and extract the last 25 games per team.
+                                const teamGamesMap = {};
+                                bulkGames.forEach(g => {
+                                    const hId = g.home_team.id;
+                                    const aId = g.visitor_team.id;
                                     
-                                    const teamGames = teamGamesRes.data.data.filter(g => g.status === 'Final');
-                                    // Take only the most recent 25
-                                    const last25 = teamGames.sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 25);
+                                    if (!teamGamesMap[hId]) teamGamesMap[hId] = [];
+                                    teamGamesMap[hId].push(g);
                                     
+                                    if (!teamGamesMap[aId]) teamGamesMap[aId] = [];
+                                    teamGamesMap[aId].push(g);
+                                });
+
+                                Object.values(teamGamesMap).forEach(teamGames => {
+                                    // sort teamGames descending (newest first)
+                                    teamGames.sort((a,b) => new Date(b.date) - new Date(a.date));
+                                    const last25 = teamGames.slice(0, 25);
                                     last25.forEach(g => {
                                         if (!gamesSeen.has(g.id)) {
                                             allPastGames.push(g);
                                             gamesSeen.add(g.id);
                                         }
                                     });
-                                    
-                                    // Slower delay (2s) to be extremely safe with the 30/min limit
-                                    if (i < EVERY_TEAM_ID.length - 1) await delay(2000); 
-                                } catch (err) {
-                                    console.warn(`Failed to fetch historical games for team ${tId}`, err.message);
-                                }
-                            }
-                            
-                            // Save to cache
-                            try {
+                                });
+                                
+                                // Save to cache
                                 localStorage.setItem(CACHE_KEY, JSON.stringify(allPastGames));
                                 localStorage.setItem(CACHE_DATE_KEY, todayStr);
-                            } catch (e) {
-                                console.warn("Failed to write to localStorage (possibly quota exceeded)", e);
+                            } catch (err) {
+                                console.warn("Failed to fetch bulk historical games", err.message);
                             }
                         }
                         
